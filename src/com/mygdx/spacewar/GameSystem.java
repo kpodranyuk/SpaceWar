@@ -6,9 +6,11 @@
 package com.mygdx.spacewar;
 
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.utils.Array;
 import com.mygdx.spacewar.ObjectSprite.ObjectType;
+import static com.mygdx.spacewar.ObjectSprite.ObjectType.ENMMISSILE;
 import static com.mygdx.spacewar.ObjectSprite.ObjectType.ENMSHIP;
-import static com.mygdx.spacewar.ObjectSprite.ObjectType.MISSILE;
+import static com.mygdx.spacewar.ObjectSprite.ObjectType.USRMISSILE;
 import static com.mygdx.spacewar.ObjectSprite.ObjectType.USRSHIP;
 import java.util.ArrayList;
 
@@ -18,28 +20,38 @@ import java.util.ArrayList;
  */
 public class GameSystem {
     private PlayerShip player;              // Игрок
-    private ArrayList<EnemyShip> enemies;   // Враги
+    private Array<EnemyShip> enemies;       // Враги
+    private Array<Missile> playersMissiles; // Снаряды игрока (выпущенные)
+    private Array<Missile> enemiesMissiles; // Снаряды врагов (выпущенные)
+    private int curId;
     
     /**
      * Конструктор
      */
     public GameSystem(){
-        ObjectSprite playersView = new ObjectSprite("ship.png", 34, 37, USRSHIP);
-        ObjectSprite playersMissileView = new ObjectSprite("fire/greenpng.png", 22, 11, MISSILE);
+        curId = -1;
+        enemies = new Array();
+        playersMissiles = new Array();
+        enemiesMissiles = new Array();
         
-        ObjectSprite enemiesView = new ObjectSprite("enemies/enemy1.png", 29, 38, ENMSHIP);
-        ObjectSprite enemiesMissileView = new ObjectSprite("fire/redpng.png", 22, 11, MISSILE);
-        
+        createPlayer();
+    }
+    
+    private int controlIdCounter(){
+        this.curId+=1;
+        if (this.curId>1500){
+            this.curId = 0;
+        }
+        return this.curId;
+    }
+    
+    private void createPlayer(){
+        ObjectSprite playersView = new ObjectSprite("ship.png", 34, 37, USRSHIP, controlIdCounter());
+        ObjectSprite playersMissileView = new ObjectSprite("fire/greenpng.png", 22, 11, USRMISSILE, controlIdCounter());
         StraightTrajectory playersTrajectory = new StraightTrajectory((float) 170.0, false);
-        StraightTrajectory enemiesTrajectory = new StraightTrajectory((float) 200.0, true);
-        double speed = 150.0;
         Missile playersMissile = new Missile(1, (float) 170.0, playersTrajectory, playersMissileView);
-        Missile enemiesMissile = new Missile(1, (float) 200.0, enemiesTrajectory, enemiesMissileView);
-        
-        player = new PlayerShip(1, (float) speed, playersView, new Weapon(playersMissile));
-        enemies = new ArrayList();
-        EnemyShip enemy = new EnemyShip(1, (float) 200.0, enemiesView, new Weapon(enemiesMissile));
-        enemies.add(enemy);
+        player = new PlayerShip(1, (float) 150.0, playersView, new Weapon(playersMissile));
+        //playersMissiles.add(playersMissile);
     }
     
     /**
@@ -47,16 +59,95 @@ public class GameSystem {
      * @return Отображение врага
      */
     public ObjectSprite generateEnemy(){
-        int enemyIndex = MathUtils.random(0, enemies.size()-1);
-        return new ObjectSprite(enemies.get(enemyIndex).getView());
+        //int enemyIndex = MathUtils.random(0, enemies.size()-1);
+        ObjectSprite enemiesView = new ObjectSprite("enemies/enemy1.png", 29, 38, ENMSHIP, controlIdCounter());
+        ObjectSprite enemiesMissileView = new ObjectSprite("fire/redpng.png", 22, 11, ENMMISSILE, controlIdCounter());
+        StraightTrajectory enemiesTrajectory = new StraightTrajectory((float) 200.0, true);
+        Missile enemiesMissile = new Missile(1, (float) 200.0, enemiesTrajectory, enemiesMissileView);        
+        EnemyShip enemy = new EnemyShip(1, (float) 200.0, enemiesView, new Weapon(enemiesMissile));
+        enemies.add(enemy);
+        //enemiesMissiles.add(enemiesMissile);
+        return enemiesView;
     }
     
-    public ObjectSprite getEnemiesMissile(ObjectType type){
-        if (type == ENMSHIP)
-            return this.enemies.get(0).getMissile().getView();
+    /**
+     * Сделать выстрел
+     * @param type Тип объекта, инициирующего выстрел
+     * @param objectId Id объекта, инициирующего выстрел
+     * @return Отображение снаряда
+     */
+    public ObjectSprite makeShoot(ObjectType type, int objectId){
+        if (type == USRSHIP){
+            ObjectSprite newMissileView = new ObjectSprite (this.player.getMissile().getView(), controlIdCounter());
+            Missile newMissile = new Missile (this.player.getMissile(), newMissileView);
+            this.playersMissiles.add(newMissile);
+            return newMissileView;
+        }
+        if (type == ENMSHIP){
+            Ship currentEnemy = getActiveEnemy(ENMSHIP, objectId);
+            ObjectSprite newMissileView = new ObjectSprite (currentEnemy.getMissile().getView(), controlIdCounter());
+            Missile newMissile = new Missile (currentEnemy.getMissile(), newMissileView);
+            this.enemiesMissiles.add(newMissile);
+            return newMissileView;
+        }            
         return null;
     }
     
+    private Missile getActiveMissile(ObjectType type, int missileId){
+        if (missileId<0)
+            return null;
+        if (type == USRMISSILE){
+            for (Missile miss : this.playersMissiles){
+                if (miss.getView().getId() == missileId)
+                    return miss;
+            }
+        }
+        if (type == ENMMISSILE){
+            for (Missile miss : this.enemiesMissiles){
+                if (miss.getView().getId() == missileId)
+                    return miss;
+            }
+        }
+        return null;
+    }
+    
+    private Ship getActiveEnemy(ObjectType type, int enemyId){
+        if (enemyId<0)
+            return null;
+        if (type == ENMSHIP){
+            for (Ship enemy: this.enemies){
+                if (enemy.getView().getId() == enemyId)
+                    return enemy;
+            }
+        }
+        return null;
+    }
+    
+    public void missilesCollision(ObjectType firstType, int firstId, ObjectType secondType, int secondId ){
+        if (firstType == USRMISSILE && secondType == ENMMISSILE){
+            this.playersMissiles.removeValue(this.getActiveMissile(firstType, firstId), true);
+            this.enemiesMissiles.removeValue(this.getActiveMissile(secondType, secondId), true);
+        }
+        else if (firstType == ENMMISSILE && secondType == USRMISSILE){
+            this.playersMissiles.removeValue(this.getActiveMissile(secondType, secondId), true);
+            this.enemiesMissiles.removeValue(this.getActiveMissile(firstType, firstId), true);
+        }
+    }
+    
+    public void objectLeftField(ObjectType type, int id){
+        if (type == USRMISSILE){
+            System.out.println("Freed user missile with id " + id);
+            this.playersMissiles.removeValue(this.getActiveMissile(type, id), true);
+        }
+        else if (type == ENMMISSILE){
+            System.out.println("Freed enemy missile with id " + id);
+            this.enemiesMissiles.removeValue(this.getActiveMissile(type, id), true);
+        }
+        else if (type == ENMSHIP) {
+            System.out.println("Freed enemy ship missile with id " + id);
+            this.enemies.removeValue((EnemyShip)this.getActiveEnemy(type, id), true);
+        }
+    }
     /**
      * Получить корабль игрока
      * @return
