@@ -32,6 +32,20 @@ public class Missile {
     }
     
     /**
+     * Конструктор копирования 
+     * @param other Другой снаряд
+     * @param view Новый вид для этого снаряда
+     */
+    public Missile(Missile other, ObjectSprite view){
+        if(other == null || view == null)
+            throw new Error("Can't create copy of null missile");
+        this.damage = other.getDamage();
+        this.speed = other.getSpeed();
+        this.trajectory = other.getTrajectory();
+        this.missileView = view;
+    }
+    
+    /**
      * Получить отображение снаряда
      * @return Отображение снаряда
      */
