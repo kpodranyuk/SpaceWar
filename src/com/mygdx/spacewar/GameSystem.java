@@ -135,6 +135,8 @@ public class GameSystem {
         else if (type == ENMSHIP && missileType == USRMISSILE){
             Ship s = getActiveEnemy(type, shipId);
             Missile m = getActiveMissile(missileType, missileId);
+            if (m == null)
+                return false;
             s.takeDamage(m.getDamage());
             this.playersMissiles.removeValue(m, true);
             if (s.getHealth() <= 0){

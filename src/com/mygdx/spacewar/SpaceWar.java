@@ -275,6 +275,7 @@ public class SpaceWar extends ApplicationAdapter {
             playersView.rect.x = (float) (800*0.10);
     }
     
+    // Может пересечься либо с пользовательским кораблем, либо с пользовательским снарядом
     private void controlEnemiesSprites() {
         // Задаем итератор для массива врагов
         Iterator<ObjectSprite> iter = enemies.iterator();
@@ -285,18 +286,31 @@ public class SpaceWar extends ApplicationAdapter {
             curEnemy.rect.x -= system.getActiveEnemy(curEnemy.getObjType(), curEnemy.getId()).getSpeed() * Gdx.graphics.getDeltaTime();
             // Если корабль вылетел за пределы поля - удаляем из массива
             if(curEnemy.rect.x + curEnemy.rect.width < 0) {
-                iter.remove();
                 system.objectLeftField(curEnemy.getObjType(), curEnemy.getId());
+                iter.remove();
                 continue;
-            }
-                
-            // Если корабль столкнулся с кораблем героя - добавляем очки и удаляем вражеский из массива
+            }                
+            // Если корабль столкнулся с кораблем героя - игра закончена
             if(curEnemy.rect.overlaps(playersView.rect)) {
                 //dropSound.play();
-                iter.remove();
                 // TODO изменить с учетом поиска информации о том как завершить игровой процесс
                 system.objectLeftField(curEnemy.getObjType(), curEnemy.getId());
-             }
+                iter.remove();
+                System.out.println("GAME IS OVER");//this.enemies.removeValue(enemy, true);
+                this.state = GAMEOVER;
+                //continue;
+            }
+            /*for(ObjectSprite playerM: this.playersMissiles) {
+                if(curEnemy.rect.overlaps(playerM.rect)) {
+                    //dropSound.play();
+                    if (system.isKilledShip(curEnemy.getObjType(), curEnemy.getId(), playerM.getObjType(), playerM.getId())){
+                        iter.remove();
+                        this.playersMissiles.removeValue(playerM, true);
+                        this.enemiesDestroyed+=1;
+                        break;
+                    }                                
+                }
+            }*/
         }
     }
     
@@ -311,8 +325,8 @@ public class SpaceWar extends ApplicationAdapter {
             curM.rect.x -= system.getActiveMissile(curM.getObjType(), curM.getId()).getSpeed() * Gdx.graphics.getDeltaTime();
             // Если корабль вылетел за пределы поля - удаляем из массива
             if(curM.rect.x + curM.rect.width < 0) {
-                iterM.remove();
                 system.objectLeftField(curM.getObjType(), curM.getId());
+                iterM.remove();
                 continue;
             }
             // Если снаряд столкнулся с кораблем героя
@@ -324,8 +338,16 @@ public class SpaceWar extends ApplicationAdapter {
                     System.out.println("GAME IS OVER");//this.enemies.removeValue(enemy, true);
                     this.state = GAMEOVER;
                 }
-                // TODO изменить с учетом создания метода учета урона
-                //system.objectLeftField(curM.getObjType(), curM.getId());
+                continue;
+            }
+            for(ObjectSprite playerM: this.playersMissiles) {
+                if(curM.rect.overlaps(playerM.rect)) {
+                    //dropSound.play();
+                    system.missilesCollision(curM.getObjType(), curM.getId(), playerM.getObjType(), playerM.getId());
+                    iterM.remove();
+                    this.playersMissiles.removeValue(playerM, true);
+                    break;
+                }
             }
         }
     }
@@ -341,31 +363,29 @@ public class SpaceWar extends ApplicationAdapter {
             curM.rect.x += system.getPlayer().getMissile().getSpeed() * Gdx.graphics.getDeltaTime();
             // Если снаряд вылетел за пределы поля - удаляем из массива
             if(curM.rect.x + curM.rect.width >800){
-                iterPM.remove();
                 system.objectLeftField(curM.getObjType(), curM.getId());
+                iterPM.remove();
+                curM = null;
                 continue;
             }
             // Если снаряд столкнулся с врагом
             for(ObjectSprite enemy: this.enemies) {
                 if(curM.rect.overlaps(enemy.rect)) {
                     //dropSound.play();
-                    enemiesDestroyed++;
-                    iterPM.remove();
                     if(system.isKilledShip(enemy.getObjType(), enemy.getId(), curM.getObjType(), curM.getId())){
                         this.enemies.removeValue(enemy, true);
-                    }                        
-                    //system.objectLeftField(curM.getObjType(), curM.getId());                        
-                    //system.objectLeftField(enemy.getObjType(), enemy.getId());
+                        enemiesDestroyed++;
+                    }
+                    iterPM.remove();
                     wasBreak = true;
                     break;
                 }
             }
             // Если снаряд не столкнулся с врагом, а столкнулся с другим снарядом
-            if(!wasBreak){
+            /*if(!wasBreak){
                 for(ObjectSprite enemyM: this.enemysMissiles) {
                     if(curM.rect.overlaps(enemyM.rect)) {
                         //dropSound.play();
-                        //dropsGathered++;
                         system.missilesCollision(curM.getObjType(), curM.getId(), enemyM.getObjType(), enemyM.getId());
                         iterPM.remove();
                         this.enemysMissiles.removeValue(enemyM, true);
@@ -373,7 +393,7 @@ public class SpaceWar extends ApplicationAdapter {
                     }
                 }   
             }
-            
+            */
         }
     }
 }
