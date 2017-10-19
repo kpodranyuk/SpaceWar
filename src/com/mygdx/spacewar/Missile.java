@@ -36,7 +36,7 @@ public class Missile {
      * @return Отображение снаряда
      */
     public ObjectSprite getView(){
-        return new ObjectSprite(this.missileView);
+        return this.missileView;
     }
     
     /**
