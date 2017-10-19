@@ -48,14 +48,18 @@ public class ObjectSprite {
     /**
      * Конструктор копирования
      * @param other Другое отображение
+     * @param newId Id для создаваемого объекта
      */
-    /*public ObjectSprite(ObjectSprite other){
+    public ObjectSprite(ObjectSprite other, int newId){
         if (other == null)
             throw new Error("Can't create copy of null ObjectSprite");
+        if (newId < 0)
+            throw new Error("Can't create object with negative id");
         this.rect = other.getRectangle();
         this.texture = other.getTexture();
         this.type = other.getObjType();
-    }*/
+        this.id=newId;
+    }
     
     /**
      * Получить текстуру объекта
