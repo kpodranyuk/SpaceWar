@@ -65,4 +65,14 @@ public abstract class Ship {
     public float getSpeed(){
         return this.speed;
     }
+    
+    /**
+     * Получить повреждения
+     * @param damage урон, нанесенный при повреждении
+     */
+    public void takeDamage(int damage){
+        if (damage<0)
+            throw new Error("Ship can't take negative damage");
+        this.health-=damage;
+    }
 }

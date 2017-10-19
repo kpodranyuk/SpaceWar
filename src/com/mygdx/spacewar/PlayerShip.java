@@ -29,14 +29,4 @@ public class PlayerShip extends Ship {
     public Missile shoot(){
         return this.getMissile();
     }
-    
-    /**
-     * Получить повреждения
-     * @param damage урон, нанесенный при повреждении
-     */
-    public void takeDamage(int damage){
-        if (damage<0)
-            throw new Error("Ship can't take negative damage");
-        this.health-=damage;
-    }
 }
