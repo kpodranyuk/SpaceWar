@@ -93,7 +93,7 @@ public class GameSystem {
         return null;
     }
     
-    private Missile getActiveMissile(ObjectType type, int missileId){
+    public Missile getActiveMissile(ObjectType type, int missileId){
         if (missileId<0)
             return null;
         if (type == USRMISSILE){
@@ -111,7 +111,7 @@ public class GameSystem {
         return null;
     }
     
-    private Ship getActiveEnemy(ObjectType type, int enemyId){
+    public Ship getActiveEnemy(ObjectType type, int enemyId){
         if (enemyId<0)
             return null;
         if (type == ENMSHIP){
@@ -123,14 +123,45 @@ public class GameSystem {
         return null;
     }
     
+    public boolean isKilledShip(ObjectType type, int shipId, ObjectType missileType, int missileId ){
+        if (type == USRSHIP && this.player.getView().getId() == shipId && missileType != USRMISSILE){
+            if (missileType != USRMISSILE){
+                Missile m = getActiveMissile(missileType, missileId);
+                this.player.takeDamage(m.getDamage());
+                this.enemiesMissiles.removeValue(m, true);
+                return this.player.getHealth() <= 0;
+            }
+        }
+        else if (type == ENMSHIP && missileType == USRMISSILE){
+            Ship s = getActiveEnemy(type, shipId);
+            Missile m = getActiveMissile(missileType, missileId);
+            s.takeDamage(m.getDamage());
+            this.playersMissiles.removeValue(m, true);
+            if (s.getHealth() <= 0){
+                enemies.removeValue((EnemyShip) s, true);
+                return true;
+            }
+            return false;
+        }
+        return false;
+    }
+    
     public void missilesCollision(ObjectType firstType, int firstId, ObjectType secondType, int secondId ){
         if (firstType == USRMISSILE && secondType == ENMMISSILE){
             this.playersMissiles.removeValue(this.getActiveMissile(firstType, firstId), true);
+            System.out.println("Freed user missile with id " + firstId);
+            this.playersMissiles.shrink();
             this.enemiesMissiles.removeValue(this.getActiveMissile(secondType, secondId), true);
+            System.out.println("Freed enemy missile with id " + secondId);
+            this.enemiesMissiles.shrink();
         }
         else if (firstType == ENMMISSILE && secondType == USRMISSILE){
             this.playersMissiles.removeValue(this.getActiveMissile(secondType, secondId), true);
+            System.out.println("Freed user missile with id " + secondId);
+            this.playersMissiles.shrink();
             this.enemiesMissiles.removeValue(this.getActiveMissile(firstType, firstId), true);
+            System.out.println("Freed enemy missile with id " + firstId);
+            this.enemiesMissiles.shrink();
         }
     }
     
@@ -138,14 +169,17 @@ public class GameSystem {
         if (type == USRMISSILE){
             System.out.println("Freed user missile with id " + id);
             this.playersMissiles.removeValue(this.getActiveMissile(type, id), true);
+            this.playersMissiles.shrink();
         }
         else if (type == ENMMISSILE){
             System.out.println("Freed enemy missile with id " + id);
             this.enemiesMissiles.removeValue(this.getActiveMissile(type, id), true);
+            this.enemiesMissiles.shrink();
         }
         else if (type == ENMSHIP) {
             System.out.println("Freed enemy ship missile with id " + id);
             this.enemies.removeValue((EnemyShip)this.getActiveEnemy(type, id), true);
+            this.enemies.shrink();
         }
     }
     /**
@@ -162,11 +196,11 @@ public class GameSystem {
      * @param type Тип корабля
      * @return Корабль с данным типом
      */
-    public Ship getShip(ObjectType type){
+    /*public Ship getShip(ObjectType type){
         if (type == USRSHIP)
             return this.player;
         if (type == ENMSHIP)
             return this.enemies.get(0);
         return null;
-    }
+    }*/
 }
