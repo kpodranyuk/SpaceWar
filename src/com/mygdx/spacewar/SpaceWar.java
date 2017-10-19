@@ -15,6 +15,9 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
 import static com.mygdx.spacewar.ObjectSprite.ObjectType.ENMSHIP;
+import static com.mygdx.spacewar.SpaceWar.GAMESTATE.GAMEOVER;
+import static com.mygdx.spacewar.SpaceWar.GAMESTATE.PAUSED;
+import static com.mygdx.spacewar.SpaceWar.GAMESTATE.PLAY;
 import java.util.Iterator;
 
 /**
@@ -22,6 +25,10 @@ import java.util.Iterator;
  * @author Katie
  */
 public class SpaceWar extends ApplicationAdapter {
+    
+    public enum GAMESTATE { PAUSED, GAMEOVER, PLAY };
+    private GAMESTATE state;
+    private GAMESTATE lastState;
     private GameSystem system;
     
     private OrthographicCamera camera;  /// Камера
@@ -31,10 +38,7 @@ public class SpaceWar extends ApplicationAdapter {
     private TextureRegion back;         /// Фон
 
     private ObjectSprite playersView;   /// Отображение игрока
-    //private Rectangle heroShipRect;     /// Прямоугольник героя
-    //private Texture heroShip;           /// Изображение героя
-
-    //private Texture enemyShip;          /// Изображение врага        
+    
     private Array<ObjectSprite> enemies;   /// Массив врагов
     private Array<ObjectSprite> enemysMissiles;   /// Массив врагов
     private Array<ObjectSprite> playersMissiles;  /// Массив снарядов героя
@@ -44,9 +48,13 @@ public class SpaceWar extends ApplicationAdapter {
     
     private static final long shootDeltaTime = 220;
     private long lastShootTime;
+    
+    private static final long spacePushedDeltaTime = 100;
+    private long spacePushedTime;
 
-    private int dropsGathered;          /// Количество сбитых врагов
-    private BitmapFont font;            /// Шрифт
+    private int enemiesDestroyed;          /// Количество сбитых врагов
+    private BitmapFont gameFont;            /// Шрифт
+    private BitmapFont infoFont;            /// Шрифт
 
     @Override
     public void create () {
@@ -58,32 +66,146 @@ public class SpaceWar extends ApplicationAdapter {
         img = new Texture("background.png");
         back = new TextureRegion(img, 0, 0, 1366, 768);
         // Создаем шрифт и задаем ему цвет
-        font = new BitmapFont();
-        font.setColor(Color.WHITE);
+        gameFont = new BitmapFont();
+        gameFont.setColor(Color.WHITE);
+        
+        infoFont = new BitmapFont();
+        infoFont.setColor(Color.WHITE);
+        infoFont.getData().setScale(2, 2);
 
+        startRoutine();
+    }
+    
+    @Override
+    public void pause(){
+        this.state = PAUSED;
+        spacePushedTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
+    }
+
+    @Override
+    public void render () {
+        // Задаем цвет очистки
+        Gdx.gl.glClearColor(1, 0, 0, 1);
+        // Очищаем экран
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        // Обновляем камеру
+        camera.update();
+        if (null != state) switch (state) {
+            case PLAY:
+                // Сообщаем SpriteBatch использовать систему координат камеры. (матрицу проекции)
+                // SpriteBatch нарисует все, что будет находиться в заданных координатах.
+                batch.setProjectionMatrix(camera.combined);
+                // Начинаем сессию
+                batch.begin();
+                // Отрисовываем фон
+                batch.draw(back, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+                // Отрисовываем количество сбитых кораблей
+                gameFont.draw(batch, "Enemies killed: " + enemiesDestroyed, 0, 450);
+                // Отрисовываем корабль героя
+                batch.draw(playersView.getTexture(), playersView.rect.x, playersView.rect.y);
+                // Отрисовываем все имеющиеся корабли врага
+                for(ObjectSprite enemy: enemies) {
+                    batch.draw(enemy.getTexture(), enemy.rect.x, enemy.rect.y);
+                }   for(ObjectSprite enemyMissile: this.enemysMissiles) {
+                    batch.draw(enemyMissile.getTexture(), enemyMissile.rect.x, enemyMissile.rect.y);
+                }   for(ObjectSprite playersMissile: this.playersMissiles) {
+                    batch.draw(playersMissile.getTexture(), playersMissile.rect.x, playersMissile.rect.y);
+                }   // Завершаем сессию
+                batch.end();
+                // Если нужно опустить корабль - опускаем с заданной скоростью
+                if(Gdx.input.isKeyPressed(Keys.DOWN))
+                    playersView.rect.y -= system.getPlayer().getSpeed() * Gdx.graphics.getDeltaTime();
+                // Если нужно поднять корабль - поднимаем с заданной скоростью
+                if(Gdx.input.isKeyPressed(Keys.UP))
+                    playersView.rect.y += system.getPlayer().getSpeed() * Gdx.graphics.getDeltaTime();
+                // Если нужно замедлить корабль - замедляем с заданной скоростью
+                if(Gdx.input.isKeyPressed(Keys.LEFT))
+                    playersView.rect.x -= system.getPlayer().getSpeed() * Gdx.graphics.getDeltaTime();
+                // Если нужно ускорить корабль - ускоряем с заданной скоростью
+                if(Gdx.input.isKeyPressed(Keys.RIGHT))
+                    playersView.rect.x += system.getPlayer().getSpeed() * Gdx.graphics.getDeltaTime();
+                if(Gdx.input.isKeyPressed(Keys.X)&& TimeUtils.nanosToMillis(TimeUtils.nanoTime()) - lastShootTime > shootDeltaTime)
+                    shoot();
+                if(Gdx.input.isKeyPressed(Keys.SPACE) && TimeUtils.nanosToMillis(TimeUtils.nanoTime()) - this.spacePushedTime > SpaceWar.spacePushedDeltaTime)
+                    this.pause();
+                controlPlayerPosition();
+                // Если пришло время - респавним новые корабли
+                long timePassed = TimeUtils.nanosToMillis(TimeUtils.nanoTime()) - lastDropTime;
+                if(timePassed > respawnTime)
+                    spawnEnemy();
+                controlEnemiesSprites();
+                controlEnemiesMissilesPosition();
+                controlPlayerMissilesPosition();
+                break;
+            case PAUSED:
+                // Сообщаем SpriteBatch использовать систему координат камеры. (матрицу проекции)
+                // SpriteBatch нарисует все, что будет находиться в заданных координатах.
+                batch.setProjectionMatrix(camera.combined);
+                // Начинаем сессию
+                batch.begin();
+                // Отрисовываем фон
+                batch.draw(back, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+                // Отрисовываем сообщение о том, что игра приостановлена
+                infoFont.draw(batch, "GAME PAUSED", 300, (float) 150);
+                batch.end();
+                // Отрисовываем корабль героя
+                if(Gdx.input.isKeyPressed(Keys.SPACE) && TimeUtils.nanosToMillis(TimeUtils.nanoTime()) - this.spacePushedTime > SpaceWar.spacePushedDeltaTime){
+                    spacePushedTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
+                    this.state = this.lastState;
+                    this.lastState = PAUSED;
+                }   
+                break;
+            case GAMEOVER:
+                // Сообщаем SpriteBatch использовать систему координат камеры. (матрицу проекции)
+                // SpriteBatch нарисует все, что будет находиться в заданных координатах.
+                batch.setProjectionMatrix(camera.combined);
+                // Начинаем сессию
+                batch.begin();
+                // Отрисовываем фон
+                batch.draw(back, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+                // Отрисовываем сообщение о том, что игра приостановлена
+                infoFont.draw(batch, "GAME OVER", 300, (float) 150);
+                infoFont.draw(batch, "YOUR SCORE IS " + this.enemiesDestroyed, 260, (float) 100);
+                infoFont.draw(batch, "PRESS ENTER TO START OVER", 170, (float) 50);
+                this.lastState = GAMEOVER;
+                batch.end();
+                if(Gdx.input.isKeyPressed(Keys.ENTER)){
+                    startRoutine();
+                }
+                break;
+            default:
+                break;                
+        }
+    }
+    
+    private void startRoutine(){
+        if (enemies!=null) 
+            enemies.clear();
+        else
+            this.enemies = new Array<ObjectSprite>();
+        if (enemysMissiles!=null) 
+            enemysMissiles.clear();
+        else
+            this.enemysMissiles = new Array<ObjectSprite>();
+        if (playersMissiles!=null) 
+            playersMissiles.clear(); 
+        else
+            this.playersMissiles = new Array<ObjectSprite>();
+        
+        this.lastDropTime = 0;          /// Время последнего выпадения врага
+        this.lastShootTime = 0;
+        this.spacePushedTime = 0;
+        this.enemiesDestroyed = 0;          /// Количество сбитых врагов      
+        
         // Создаем модель
         system = new GameSystem();
 
         // Загружаем изображение геройского корабля и задаем его размеры
         playersView = system.getPlayer().getView();
         playersView.rect.y = 450 / 2 - playersView.rect.height / 2;
-        playersView.rect.x = 20;
-        /*heroShip = new Texture(Gdx.files.internal("ship.png"));
-        heroShipRect = new Rectangle();
-        heroShipRect.width = 184;
-        heroShipRect.height = 200;
-        heroShipRect.y = 450 / 2 - heroShipRect.height / 2;
-        heroShipRect.x = 20;*/  
+        playersView.rect.x = 20;       
         
-        
-        // Задаем изображение вражеского корабля
-        this.enemies = new Array<ObjectSprite>();
-        this.enemysMissiles = new Array<ObjectSprite>();
-        this.playersMissiles = new Array<ObjectSprite>();
-        //enemies.add(system.getShip(ObjectSprite.ObjectType.ENMSHIP).getView());
-        //enemyShip = new Texture(Gdx.files.internal("enemies/enemy1.png"));
-        // Выделяем память под массив вражеских кораблей
-        //enemies = new Array<Rectangle>();
         // Создаем первый корабль
         spawnEnemy();
 
@@ -97,171 +219,16 @@ public class SpaceWar extends ApplicationAdapter {
 
         // Выделяем память под batch
         batch = new SpriteBatch();
-    }
-
-    @Override
-    public void render () {
-        // Задаем цвет очистки
-        Gdx.gl.glClearColor(1, 0, 0, 1);
-        // Очищаем экран
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        // Обновляем камеру
-        camera.update();
-
-        // Сообщаем SpriteBatch использовать систему координат камеры. (матрицу проекции)
-        // SpriteBatch нарисует все, что будет находиться в заданных координатах.
-        batch.setProjectionMatrix(camera.combined);
-        // Начинаем сессию 
-        batch.begin();
-        // Отрисовываем фон
-        batch.draw(back, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        // Отрисовываем количество сбитых кораблей
-        font.draw(batch, "Enemies killed: " + dropsGathered, 0, 450);
-        // Отрисовываем корабль героя
-        batch.draw(playersView.getTexture(), playersView.rect.x, playersView.rect.y);
-        // Отрисовываем все имеющиеся корабли врага
-        for(ObjectSprite enemy: enemies) {
-            batch.draw(enemy.getTexture(), enemy.rect.x, enemy.rect.y);
-        }
-        
-        for(ObjectSprite enemyMissile: this.enemysMissiles) {
-            batch.draw(enemyMissile.getTexture(), enemyMissile.rect.x, enemyMissile.rect.y);
-        }
-        
-        for(ObjectSprite playersMissile: this.playersMissiles) {
-            batch.draw(playersMissile.getTexture(), playersMissile.rect.x, playersMissile.rect.y);
-        }
-        // Завершаем сессию
-        batch.end();
-
-        // Если нужно опустить корабль - опускаем с заданной скоростью
-        if(Gdx.input.isKeyPressed(Keys.DOWN)) 
-            playersView.rect.y -= system.getPlayer().getSpeed() * Gdx.graphics.getDeltaTime();
-        // Если нужно поднять корабль - поднимаем с заданной скоростью
-        if(Gdx.input.isKeyPressed(Keys.UP)) 
-            playersView.rect.y += system.getPlayer().getSpeed() * Gdx.graphics.getDeltaTime();
-        // Если нужно замедлить корабль - замедляем с заданной скоростью
-        if(Gdx.input.isKeyPressed(Keys.LEFT)) 
-            playersView.rect.x -= system.getPlayer().getSpeed() * Gdx.graphics.getDeltaTime();
-        // Если нужно ускорить корабль - ускоряем с заданной скоростью
-        if(Gdx.input.isKeyPressed(Keys.RIGHT)) 
-            playersView.rect.x += system.getPlayer().getSpeed() * Gdx.graphics.getDeltaTime();
-        if(Gdx.input.isKeyPressed(Keys.X)&& TimeUtils.nanosToMillis(TimeUtils.nanoTime()) - lastShootTime > shootDeltaTime) 
-            shoot();
-        if(Gdx.input.isKeyPressed(Keys.SPACE))
-             ;//this.event(EventList.Pause);//this.pause();
-
-        // Если при сдвиге корабль вылетел за пределы поля - возвращаем его в систему координат
-        if(playersView.rect.y < 0)
-            playersView.rect.y = 0;
-        // Отнимаем от высоты 15 - чтобы не залезать на строку с счетом
-        if(playersView.rect.y > 450 - playersView.rect.height - 15) 
-            playersView.rect.y = 450 - playersView.rect.height - 15;
-        
-        // Если при сдвиге корабль вылетел за пределы поля - возвращаем его в систему координат
-        if(playersView.rect.x < 0)
-            playersView.rect.x = 0;
-        // Отнимаем от высоты 15 - чтобы не залезать на строку с счетом
-        if(playersView.rect.x > 800*0.10) 
-            playersView.rect.x = (float) (800*0.10);
-
-        // Если пришло время - респавним новые корабли
-        long timePassed = TimeUtils.nanosToMillis(TimeUtils.nanoTime()) - lastDropTime;
-        if(timePassed > respawnTime)
-            spawnEnemy();
-
-        // Задаем итератор для массива врагов
-        Iterator<ObjectSprite> iter = enemies.iterator();
-        // Для каждого врага..
-        while(iter.hasNext()) {
-            ObjectSprite curEnemy = iter.next();
-            // Направляем его на "левый вылет"
-            curEnemy.rect.x -= system.getShip(curEnemy.getObjType()).getSpeed() * Gdx.graphics.getDeltaTime();
-            // Если корабль вылетел за пределы поля - удаляем из массива
-            if(curEnemy.rect.x + curEnemy.rect.width < 0) {
-                iter.remove();
-                system.objectLeftField(curEnemy.getObjType(), curEnemy.getId());
-                continue;
-            }
-                
-            // Если корабль столкнулся с кораблем героя - добавляем очки и удаляем вражеский из массива
-            if(curEnemy.rect.overlaps(playersView.rect)) {
-                //dropSound.play();
-                dropsGathered++;
-                iter.remove();
-             }
-        }
-        
-        
-        // Задаем итератор для массива врагов
-        Iterator<ObjectSprite> iterM = this.enemysMissiles.iterator();
-        // Для каждого врага..
-        while(iterM.hasNext()) {
-            ObjectSprite curM = iterM.next();
-            // Направляем его на "левый вылет"
-            curM.rect.x -= system.getShip(ENMSHIP).getSpeed() * Gdx.graphics.getDeltaTime();
-            // Если корабль вылетел за пределы поля - удаляем из массива
-            if(curM.rect.x + curM.rect.width < 0) {
-                iterM.remove();
-                system.objectLeftField(curM.getObjType(), curM.getId());
-                continue;
-            }
-            // Если корабль столкнулся с кораблем героя - добавляем очки и удаляем вражеский из массива
-            /*if(curM.rect.overlaps(playersView.rect)) {
-                //dropSound.play();
-                dropsGathered++;
-                iterM.remove();
-            }*/
-        }
-        
-        Iterator<ObjectSprite> iterPM = this.playersMissiles.iterator();
-        // Для каждого врага..
-        while(iterPM.hasNext()) {
-            boolean wasBreak = false;
-            ObjectSprite curM = iterPM.next();
-            // Направляем его на "левый вылет"
-            curM.rect.x += system.getPlayer().getMissile().getSpeed() * Gdx.graphics.getDeltaTime();
-            // Если корабль вылетел за пределы поля - удаляем из массива
-            if(curM.rect.x + curM.rect.width >800){
-                iterPM.remove();
-                system.objectLeftField(curM.getObjType(), curM.getId());
-                continue;
-            }
-            if(!wasBreak){
-                for(ObjectSprite enemy: this.enemies) {
-                    if(curM.rect.overlaps(enemy.rect)) {
-                        //dropSound.play();
-                        dropsGathered++;
-                        iterPM.remove();
-                        this.enemies.removeValue(enemy, true);
-                        wasBreak = true;
-                        break;
-                    }
-                }
-            }
-            if(!wasBreak){
-                for(ObjectSprite enemyM: this.enemysMissiles) {
-                    if(curM.rect.overlaps(enemyM.rect)) {
-                        //dropSound.play();
-                        //dropsGathered++;
-                        iterPM.remove();
-                        this.enemysMissiles.removeValue(enemyM, true);
-                        break;
-                    }
-                }   
-            }
-            
-        }
+        state = PLAY;
+        lastState = PLAY;
     }
 
     @Override
     public void dispose () {
         img.dispose();
-        //heroShip.dispose();
-        //enemyShip.dispose();
         batch.dispose();
-        font.dispose();
+        gameFont.dispose();
+        infoFont.dispose();
         enemies.clear();
         enemysMissiles.clear();
         playersMissiles.clear();  
@@ -270,10 +237,6 @@ public class SpaceWar extends ApplicationAdapter {
     private void spawnEnemy() {
         // Создаем нового врага
         ObjectSprite newEnemy = system.generateEnemy();
-        //Rectangle enemy = new Rectangle();
-        // Задаем ему размеры
-        //enemy.width = 66;
-        //enemy.height = 93;
         // Задаем ему начальную позицию
         newEnemy.rect.x = 800;//
         newEnemy.rect.y = MathUtils.random(0, 450-newEnemy.rect.height - 15);//480;
@@ -294,5 +257,123 @@ public class SpaceWar extends ApplicationAdapter {
         newMissile.rect.y = playersView.rect.y;
         this.playersMissiles.add(newMissile);
         lastShootTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
+    }
+    
+    private void controlPlayerPosition(){
+        // Если при сдвиге корабль вылетел за пределы поля - возвращаем его в систему координат
+        if(playersView.rect.y < 0)
+            playersView.rect.y = 0;
+        // Отнимаем от высоты 15 - чтобы не залезать на строку с счетом
+        if(playersView.rect.y > 450 - playersView.rect.height - 15) 
+            playersView.rect.y = 450 - playersView.rect.height - 15;
+        
+        // Если при сдвиге корабль вылетел за пределы поля - возвращаем его в систему координат
+        if(playersView.rect.x < 0)
+            playersView.rect.x = 0;
+        // Не даем кораблю выйти более чем на 10% от ширины игрового поля
+        if(playersView.rect.x > 800*0.10) 
+            playersView.rect.x = (float) (800*0.10);
+    }
+    
+    private void controlEnemiesSprites() {
+        // Задаем итератор для массива врагов
+        Iterator<ObjectSprite> iter = enemies.iterator();
+        // Для каждого врага..
+        while(iter.hasNext()) {
+            ObjectSprite curEnemy = iter.next();
+            // Направляем его на "левый вылет"
+            curEnemy.rect.x -= system.getActiveEnemy(curEnemy.getObjType(), curEnemy.getId()).getSpeed() * Gdx.graphics.getDeltaTime();
+            // Если корабль вылетел за пределы поля - удаляем из массива
+            if(curEnemy.rect.x + curEnemy.rect.width < 0) {
+                iter.remove();
+                system.objectLeftField(curEnemy.getObjType(), curEnemy.getId());
+                continue;
+            }
+                
+            // Если корабль столкнулся с кораблем героя - добавляем очки и удаляем вражеский из массива
+            if(curEnemy.rect.overlaps(playersView.rect)) {
+                //dropSound.play();
+                iter.remove();
+                // TODO изменить с учетом поиска информации о том как завершить игровой процесс
+                system.objectLeftField(curEnemy.getObjType(), curEnemy.getId());
+             }
+        }
+    }
+    
+    // Может пересечься либо с пользовательским кораблем, либо с пользовательским снарядом
+    private void controlEnemiesMissilesPosition() {
+        // Задаем итератор для массива снарядов
+        Iterator<ObjectSprite> iterM = this.enemysMissiles.iterator();
+        // Для каждого снаряда..
+        while(iterM.hasNext()) {
+            ObjectSprite curM = iterM.next();
+            // Направляем его на "левый вылет"
+            curM.rect.x -= system.getActiveMissile(curM.getObjType(), curM.getId()).getSpeed() * Gdx.graphics.getDeltaTime();
+            // Если корабль вылетел за пределы поля - удаляем из массива
+            if(curM.rect.x + curM.rect.width < 0) {
+                iterM.remove();
+                system.objectLeftField(curM.getObjType(), curM.getId());
+                continue;
+            }
+            // Если снаряд столкнулся с кораблем героя
+            if(curM.rect.overlaps(playersView.rect)) {
+                //dropSound.play();
+                //dropsGathered++;
+                iterM.remove();
+                if(system.isKilledShip(playersView.getObjType(), playersView.getId(), curM.getObjType(), curM.getId())){
+                    System.out.println("GAME IS OVER");//this.enemies.removeValue(enemy, true);
+                    this.state = GAMEOVER;
+                }
+                // TODO изменить с учетом создания метода учета урона
+                //system.objectLeftField(curM.getObjType(), curM.getId());
+            }
+        }
+    }
+    
+    // Может пересечься либо с вражеским кораблем, либо с вражеским снарядом
+    private void controlPlayerMissilesPosition() {
+        Iterator<ObjectSprite> iterPM = this.playersMissiles.iterator();
+        // Для каждого снаряда..
+        while(iterPM.hasNext()) {
+            boolean wasBreak = false;
+            ObjectSprite curM = iterPM.next();
+            // Направляем его на "правый вылет"
+            curM.rect.x += system.getPlayer().getMissile().getSpeed() * Gdx.graphics.getDeltaTime();
+            // Если снаряд вылетел за пределы поля - удаляем из массива
+            if(curM.rect.x + curM.rect.width >800){
+                iterPM.remove();
+                system.objectLeftField(curM.getObjType(), curM.getId());
+                continue;
+            }
+            // Если снаряд столкнулся с врагом
+            for(ObjectSprite enemy: this.enemies) {
+                if(curM.rect.overlaps(enemy.rect)) {
+                    //dropSound.play();
+                    enemiesDestroyed++;
+                    iterPM.remove();
+                    if(system.isKilledShip(enemy.getObjType(), enemy.getId(), curM.getObjType(), curM.getId())){
+                        this.enemies.removeValue(enemy, true);
+                    }                        
+                    //system.objectLeftField(curM.getObjType(), curM.getId());                        
+                    //system.objectLeftField(enemy.getObjType(), enemy.getId());
+                    wasBreak = true;
+                    break;
+                }
+            }
+            // Если снаряд не столкнулся с врагом, а столкнулся с другим снарядом
+            if(!wasBreak){
+                for(ObjectSprite enemyM: this.enemysMissiles) {
+                    if(curM.rect.overlaps(enemyM.rect)) {
+                        //dropSound.play();
+                        //dropsGathered++;
+                        system.missilesCollision(curM.getObjType(), curM.getId(), enemyM.getObjType(), enemyM.getId());
+                        iterPM.remove();
+                        this.enemysMissiles.removeValue(enemyM, true);
+                        break;
+                    }
+                }   
+            }
+            
+        }
     }
 }
