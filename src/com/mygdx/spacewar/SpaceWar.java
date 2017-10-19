@@ -150,7 +150,7 @@ public class SpaceWar extends ApplicationAdapter {
         if(Gdx.input.isKeyPressed(Keys.X)&& TimeUtils.nanosToMillis(TimeUtils.nanoTime()) - lastShootTime > shootDeltaTime) 
             shoot();
         if(Gdx.input.isKeyPressed(Keys.SPACE))
-            this.pause();
+             ;//this.event(EventList.Pause);//this.pause();
 
         // Если при сдвиге корабль вылетел за пределы поля - возвращаем его в систему координат
         if(playersView.rect.y < 0)
@@ -179,8 +179,12 @@ public class SpaceWar extends ApplicationAdapter {
             // Направляем его на "левый вылет"
             curEnemy.rect.x -= system.getShip(curEnemy.getObjType()).getSpeed() * Gdx.graphics.getDeltaTime();
             // Если корабль вылетел за пределы поля - удаляем из массива
-            if(curEnemy.rect.x + curEnemy.rect.width < 0) 
+            if(curEnemy.rect.x + curEnemy.rect.width < 0) {
                 iter.remove();
+                system.objectLeftField(curEnemy.getObjType(), curEnemy.getId());
+                continue;
+            }
+                
             // Если корабль столкнулся с кораблем героя - добавляем очки и удаляем вражеский из массива
             if(curEnemy.rect.overlaps(playersView.rect)) {
                 //dropSound.play();
@@ -198,14 +202,17 @@ public class SpaceWar extends ApplicationAdapter {
             // Направляем его на "левый вылет"
             curM.rect.x -= system.getShip(ENMSHIP).getSpeed() * Gdx.graphics.getDeltaTime();
             // Если корабль вылетел за пределы поля - удаляем из массива
-            if(curM.rect.x + curM.rect.width < 0) 
+            if(curM.rect.x + curM.rect.width < 0) {
                 iterM.remove();
+                system.objectLeftField(curM.getObjType(), curM.getId());
+                continue;
+            }
             // Если корабль столкнулся с кораблем героя - добавляем очки и удаляем вражеский из массива
-            if(curM.rect.overlaps(playersView.rect)) {
+            /*if(curM.rect.overlaps(playersView.rect)) {
                 //dropSound.play();
                 dropsGathered++;
                 iterM.remove();
-             }
+            }*/
         }
         
         Iterator<ObjectSprite> iterPM = this.playersMissiles.iterator();
@@ -218,7 +225,8 @@ public class SpaceWar extends ApplicationAdapter {
             // Если корабль вылетел за пределы поля - удаляем из массива
             if(curM.rect.x + curM.rect.width >800){
                 iterPM.remove();
-                wasBreak = true;
+                system.objectLeftField(curM.getObjType(), curM.getId());
+                continue;
             }
             if(!wasBreak){
                 for(ObjectSprite enemy: this.enemies) {
@@ -274,14 +282,14 @@ public class SpaceWar extends ApplicationAdapter {
         // Изменяем время "выпада" врага
         lastDropTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
         
-        ObjectSprite newMissile = system.getEnemiesMissile(newEnemy.getObjType());
+        ObjectSprite newMissile = system.makeShoot(newEnemy.getObjType(), newEnemy.getId());
         newMissile.rect.x = 800 - newEnemy.rect.width;
         newMissile.rect.y = newEnemy.rect.y + newEnemy.rect.height / 2;
         enemysMissiles.add(newMissile);
     }
     
     private void shoot() {
-        ObjectSprite newMissile = system.getPlayer().getMissile().getView();
+        ObjectSprite newMissile = system.makeShoot(playersView.getObjType(), playersView.getId());
         newMissile.rect.x = playersView.rect.x + playersView.rect.width/2;
         newMissile.rect.y = playersView.rect.y;
         this.playersMissiles.add(newMissile);
