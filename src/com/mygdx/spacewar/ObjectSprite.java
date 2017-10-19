@@ -19,7 +19,7 @@ public class ObjectSprite {
     /**
      * Возможные типы объекта
      */
-    public enum ObjectType { MISSILE, USRSHIP, ENMSHIP, ENMSHIPHEALTHY }
+    public enum ObjectType { USRMISSILE, ENMMISSILE, USRSHIP, ENMSHIP, ENMSHIPHEALTHY }
     private ObjectType type;    /// Тип объекта
     
     /**
