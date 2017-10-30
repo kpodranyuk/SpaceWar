@@ -65,7 +65,7 @@ public class GameSystem {
         ObjectSprite playersMissileView = new ObjectSprite(playersMissileImg, 22, 11, controlIdCounter());
 
         StraightTrajectory playersTrajectory = new StraightTrajectory((float) 170.0, false);
-        Missile playersMissile = new Missile(3, (float) 170.0, playersTrajectory, playersMissileView);
+        Missile playersMissile = new Missile(1, (float) 170.0, playersTrajectory, playersMissileView);
         player = new PlayerShip(1, (float) 200.0, playersView, new Weapon(playersMissile));
         //playersMissiles.add(playersMissile);
     }
@@ -110,7 +110,7 @@ public class GameSystem {
         
         StraightTrajectory enemiesTrajectory = new StraightTrajectory((float) 200.0, true);
         Missile enemiesMissile = new Missile(1, (float) 250.0, enemiesTrajectory, enemiesMissileView);        
-        EnemyShip enemy = new EnemyShip(3, (float) 200.0, enemiesView, new Weapon(enemiesMissile));
+        EnemyShip enemy = new EnemyShip(1, (float) 200.0, enemiesView, new Weapon(enemiesMissile));
         return enemy;
     }
     
@@ -122,18 +122,7 @@ public class GameSystem {
             enemiesSprites.add(enemiesImg);
         }
         enemiesView = new ObjectSprite(enemiesImg, 40, 52, controlIdCounter());
-        
-        /*ObjectSprite enemiesMissileView = null;
-        ObjectImage enemiesMissileImg = getImageOfEnemyObject(ENMMISSILE);
-        if (enemiesMissileImg==null){
-            enemiesMissileImg = new ObjectImage("fire/redpng.png", ENMMISSILE);
-            enemiesMissilesSprites.add(enemiesMissileImg);
-        }
-        enemiesMissileView = new ObjectSprite(enemiesMissileImg, 22, 11, controlIdCounter());*/
-        
-        /*StraightTrajectory enemiesTrajectory = new StraightTrajectory((float) 200.0, true);
-        Missile enemiesMissile = new Missile(1, (float) 250.0, enemiesTrajectory, enemiesMissileView);        */
-        EnemyShip enemy = new EnemyShip(9, (float) 200.0, enemiesView, new Weapon(null));
+        EnemyShip enemy = new EnemyShip(4, (float) 170.0, enemiesView, new Weapon(null));
         return enemy;
     }
     
