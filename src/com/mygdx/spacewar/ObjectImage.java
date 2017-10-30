@@ -13,9 +13,7 @@ import com.badlogic.gdx.math.Rectangle;
  * @author Katie
  */
 public class ObjectImage {
-    private Texture texture;    /// Текстура 
-    public Rectangle rect;     /// Прямоугольник отображения
-    
+    private Texture texture;    /// Текстура     
     /**
      * Возможные типы объекта
      */
@@ -29,31 +27,17 @@ public class ObjectImage {
      * @param height Высота объекта на игровом поле
      * @param type Тип объекта
      */
-    public ObjectImage(String img, int width, int height, ObjectType type){
-        if (img == null || img.equals("") || width <= 0 || height <= 0 || type == null)
+    public ObjectImage(String img, ObjectType type){
+        if (img == null || img.equals("") || type == null)
             throw new Error("Can't create view of object");
-        this.texture = new Texture(img);
-        this.rect = new Rectangle();
-        this.rect.width = width;
-        this.rect.height = height;
-        
-        this.rect.x = 0;
-        this.rect.y = 0;
-        
+        this.texture = new Texture(img);        
         this.type = type;
     }
     
     public ObjectImage(ObjectImage other){
         if (other == null)
             throw new Error("Can't create view of object");
-        this.texture = other.getTexture();
-        this.rect = new Rectangle();
-        this.rect.width = other.rect.width;
-        this.rect.height = other.rect.height;
-        
-        this.rect.x = 0;
-        this.rect.y = 0;
-        
+        this.texture = other.getTexture();    
         this.type = other.getObjType();
     }
     
@@ -63,14 +47,6 @@ public class ObjectImage {
      */
     public Texture getTexture(){
         return this.texture;
-    }
-
-    /**
-     * Получить форму объекта
-     * @return Форма объекта
-     */
-    public Rectangle getRectangle(){
-        return this.rect;
     }
 
     /**

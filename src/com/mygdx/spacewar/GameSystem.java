@@ -43,6 +43,9 @@ public class GameSystem {
         enemiesMissiles = new Array();
         currentLevel = Level.EASY;
         
+        enemiesSprites = new Array();
+        enemiesMissilesSprites = new Array();
+        
         createPlayer();
     }
     
@@ -55,11 +58,11 @@ public class GameSystem {
     }
     
     private void createPlayer(){
-        ObjectImage playersImg = new ObjectImage("ship.png", 34, 37, USRSHIP);
-        ObjectSprite playersView = new ObjectSprite(playersImg, controlIdCounter());
+        ObjectImage playersImg = new ObjectImage("ship.png", USRSHIP);
+        ObjectSprite playersView = new ObjectSprite(playersImg, 34, 37, controlIdCounter());
         
-        ObjectImage playersMissileImg = new ObjectImage("fire/greenpng.png", 22, 11, USRMISSILE);
-        ObjectSprite playersMissileView = new ObjectSprite(playersMissileImg, controlIdCounter());
+        ObjectImage playersMissileImg = new ObjectImage("fire/greenpng.png", USRMISSILE);
+        ObjectSprite playersMissileView = new ObjectSprite(playersMissileImg, 22, 11, controlIdCounter());
 
         StraightTrajectory playersTrajectory = new StraightTrajectory((float) 170.0, false);
         Missile playersMissile = new Missile(3, (float) 170.0, playersTrajectory, playersMissileView);
@@ -78,18 +81,18 @@ public class GameSystem {
         ObjectSprite enemiesView = null;
         ObjectImage enemiesImg = getImageOfEnemyObject(ENMSHIP);
         if (enemiesImg==null){
-            enemiesImg = new ObjectImage("enemies/enemy1.png", 29, 38, ENMSHIP);
+            enemiesImg = new ObjectImage("enemies/enemy1.png", ENMSHIP);
             enemiesSprites.add(enemiesImg);
         }
-        enemiesView = new ObjectSprite(enemiesImg, controlIdCounter());
+        enemiesView = new ObjectSprite(enemiesImg, 29, 38, controlIdCounter());
         
         ObjectSprite enemiesMissileView = null;
         ObjectImage enemiesMissileImg = getImageOfEnemyObject(ENMMISSILE);
         if (enemiesMissileImg==null){
-            enemiesMissileImg = new ObjectImage("fire/redpng.png", 22, 11, ENMMISSILE);
+            enemiesMissileImg = new ObjectImage("fire/redpng.png", ENMMISSILE);
             enemiesMissilesSprites.add(enemiesMissileImg);
         }
-        enemiesMissileView = new ObjectSprite(enemiesMissileImg, controlIdCounter());
+        enemiesMissileView = new ObjectSprite(enemiesMissileImg, 22, 11, controlIdCounter());
         
         StraightTrajectory enemiesTrajectory = new StraightTrajectory((float) 200.0, true);
         Missile enemiesMissile = new Missile(1, (float) 250.0, enemiesTrajectory, enemiesMissileView);        

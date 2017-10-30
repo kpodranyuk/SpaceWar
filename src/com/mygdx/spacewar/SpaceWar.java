@@ -14,7 +14,7 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
-import static com.mygdx.spacewar.ObjectSprite.ObjectType.ENMSHIP;
+import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMSHIP;
 import static com.mygdx.spacewar.SpaceWar.GAMESTATE.GAMEOVER;
 import static com.mygdx.spacewar.SpaceWar.GAMESTATE.PAUSED;
 import static com.mygdx.spacewar.SpaceWar.GAMESTATE.PLAY;

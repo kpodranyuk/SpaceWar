@@ -14,6 +14,7 @@ import com.badlogic.gdx.math.Rectangle;
  */
 public class ObjectSprite {
     private ObjectImage view;   /// Изображение спрайта
+    public Rectangle rect;     /// Прямоугольник отображения
     private int id;
     
     /**
@@ -21,11 +22,17 @@ public class ObjectSprite {
      * @param view Отображение объекта
      * @param id Идентификатор объекта
      */
-    public ObjectSprite(ObjectImage view, int id){
-        if (view == null)
+    public ObjectSprite(ObjectImage view, int width, int height, int id){
+        if (view == null || width <= 0 || height <= 0)
             throw new Error("Can't create sprite of object");
         this.view = view;
         this.id = id;
+        this.rect = new Rectangle();
+        this.rect.width = width;
+        this.rect.height = height;
+        
+        this.rect.x = 0;
+        this.rect.y = 0;
     }
     
     /**
@@ -40,6 +47,12 @@ public class ObjectSprite {
             throw new Error("Can't create object with negative id");
         this.view = other.getImage();
         this.id=newId;
+        this.rect = new Rectangle();
+        this.rect.width = other.rect.width;
+        this.rect.height = other.rect.height;
+        
+        this.rect.x = 0;
+        this.rect.y = 0;
     }
     
     /**
@@ -56,14 +69,6 @@ public class ObjectSprite {
      */
     public Texture getTexture(){
         return this.view.getTexture();
-    }
-
-    /**
-     * Получить форму объекта
-     * @return Форма объекта
-     */
-    public Rectangle getRectangle(){
-        return this.view.rect;
     }
 
     /**
