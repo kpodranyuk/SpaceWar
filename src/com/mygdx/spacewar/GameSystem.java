@@ -77,7 +77,21 @@ public class GameSystem {
      */
     public ObjectSprite generateEnemy(int enemiesKilled){
         controlLevel(enemiesKilled);
-        //int enemyIndex = MathUtils.random(0, enemies.size()-1);
+        int enemyIndex = MathUtils.random(1, levelToInt());        
+        EnemyShip enemy = null;
+        if(enemyIndex==1){
+            enemy = generateEasyEnemy();
+        }
+        else if(enemyIndex==2 || enemyIndex==3){
+            enemy = generateHealthyEnemy();
+        }
+            
+        enemies.add(enemy);
+        //enemiesMissiles.add(enemiesMissile);
+        return enemy.getView();
+    }
+    
+    private EnemyShip generateEasyEnemy(){
         ObjectSprite enemiesView = null;
         ObjectImage enemiesImg = getImageOfEnemyObject(ENMSHIP);
         if (enemiesImg==null){
@@ -97,9 +111,30 @@ public class GameSystem {
         StraightTrajectory enemiesTrajectory = new StraightTrajectory((float) 200.0, true);
         Missile enemiesMissile = new Missile(1, (float) 250.0, enemiesTrajectory, enemiesMissileView);        
         EnemyShip enemy = new EnemyShip(3, (float) 200.0, enemiesView, new Weapon(enemiesMissile));
-        enemies.add(enemy);
-        //enemiesMissiles.add(enemiesMissile);
-        return enemiesView;
+        return enemy;
+    }
+    
+    private EnemyShip generateHealthyEnemy(){
+        ObjectSprite enemiesView = null;
+        ObjectImage enemiesImg = getImageOfEnemyObject(ENMSHIPHEALTHY);
+        if (enemiesImg==null){
+            enemiesImg = new ObjectImage("enemies/enemy2.png", ENMSHIPHEALTHY);
+            enemiesSprites.add(enemiesImg);
+        }
+        enemiesView = new ObjectSprite(enemiesImg, 40, 52, controlIdCounter());
+        
+        /*ObjectSprite enemiesMissileView = null;
+        ObjectImage enemiesMissileImg = getImageOfEnemyObject(ENMMISSILE);
+        if (enemiesMissileImg==null){
+            enemiesMissileImg = new ObjectImage("fire/redpng.png", ENMMISSILE);
+            enemiesMissilesSprites.add(enemiesMissileImg);
+        }
+        enemiesMissileView = new ObjectSprite(enemiesMissileImg, 22, 11, controlIdCounter());*/
+        
+        /*StraightTrajectory enemiesTrajectory = new StraightTrajectory((float) 200.0, true);
+        Missile enemiesMissile = new Missile(1, (float) 250.0, enemiesTrajectory, enemiesMissileView);        */
+        EnemyShip enemy = new EnemyShip(9, (float) 200.0, enemiesView, new Weapon(null));
+        return enemy;
     }
     
     /**
@@ -146,7 +181,7 @@ public class GameSystem {
     public Ship getActiveEnemy(ObjectType type, int enemyId){
         if (enemyId<0)
             return null;
-        if (type == ENMSHIP){
+        if (type == ENMSHIP || type == ENMSHIPHEALTHY){
             for (Ship enemy: this.enemies){
                 if (enemy.getView().getId() == enemyId)
                     return enemy;
@@ -164,7 +199,7 @@ public class GameSystem {
                 return this.player.getHealth() <= 0;
             }
         }
-        else if (type == ENMSHIP && missileType == USRMISSILE){
+        else if (type == ENMSHIP || type == ENMSHIPHEALTHY && missileType == USRMISSILE){
             Ship s = getActiveEnemy(type, shipId);
             Missile m = getActiveMissile(missileType, missileId);
             if (m == null)
@@ -234,6 +269,16 @@ public class GameSystem {
         else if (enemiesKilled>80) {
             currentLevel=Level.ULTRAHARD;
         }
+    }
+    
+    private int levelToInt(){
+        if (currentLevel==Level.MEDIUM) {
+            return 2;
+        }
+        else if (currentLevel==Level.HARD || currentLevel==Level.ULTRAHARD) {
+            return 3;
+        }
+        return 1;
     }
     
     private ObjectImage getImageOfEnemyObject(ObjectType type){

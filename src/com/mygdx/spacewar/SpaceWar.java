@@ -15,6 +15,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
 import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMSHIP;
+import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMSHIPHEALTHY;
 import static com.mygdx.spacewar.SpaceWar.GAMESTATE.GAMEOVER;
 import static com.mygdx.spacewar.SpaceWar.GAMESTATE.PAUSED;
 import static com.mygdx.spacewar.SpaceWar.GAMESTATE.PLAY;
@@ -205,7 +206,9 @@ public class SpaceWar extends ApplicationAdapter {
         // Загружаем изображение геройского корабля и задаем его размеры
         playersView = system.getPlayer().getView();
         playersView.rect.y = 450 / 2 - playersView.rect.height / 2;
-        playersView.rect.x = 20;       
+        playersView.rect.x = 20;    
+        
+        respawnTime = 2200;
         
         // Создаем первый корабль
         spawnEnemy();
@@ -245,11 +248,12 @@ public class SpaceWar extends ApplicationAdapter {
         enemies.add(newEnemy);
         // Изменяем время "выпада" врага
         lastDropTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
-        
-        ObjectSprite newMissile = system.makeShoot(newEnemy.getObjType(), newEnemy.getId());
-        newMissile.rect.x = 800 - newEnemy.rect.width;
-        newMissile.rect.y = newEnemy.rect.y + newMissile.rect.height;
-        enemysMissiles.add(newMissile);
+        if (newEnemy.getObjType()!=ENMSHIPHEALTHY){
+            ObjectSprite newMissile = system.makeShoot(newEnemy.getObjType(), newEnemy.getId());
+            newMissile.rect.x = 800 - newEnemy.rect.width;
+            newMissile.rect.y = newEnemy.rect.y + newMissile.rect.height;
+            enemysMissiles.add(newMissile);
+        }
     }
     
     private void shoot() {
@@ -401,13 +405,13 @@ public class SpaceWar extends ApplicationAdapter {
     
     private void controlRespawnSpeed(){
         if (enemiesDestroyed>10) {
-            respawnTime=1000;
+            respawnTime=1600;
         }
         else if (enemiesDestroyed>25) {
-            respawnTime=500;
+            respawnTime=1000;
         }
         else if (enemiesDestroyed>50) {
-            respawnTime=200;
+            respawnTime=500;
         }
     }
 }
