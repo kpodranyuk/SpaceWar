@@ -28,8 +28,12 @@ public class StraightTrajectory extends Trajectory{
      * @return Новая позиция
      */
     @Override
-    public Rectangle calculatePosition(Rectangle cuPos) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public Rectangle calculatePosition(Rectangle cuPos, boolean toLeft, float deltaTime) {
+        if(toLeft)
+            cuPos.x -= this.getSpeed() * deltaTime;
+        else
+            cuPos.x += this.getSpeed() * deltaTime;
+        return cuPos;
     }
     
 }

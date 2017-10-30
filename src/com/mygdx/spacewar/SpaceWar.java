@@ -328,7 +328,7 @@ public class SpaceWar extends ApplicationAdapter {
         while(iterM.hasNext()) {
             ObjectSprite curM = iterM.next();
             // Направляем его на "левый вылет"
-            curM.rect.x -= system.getActiveMissile(curM.getObjType(), curM.getId()).getSpeed() * Gdx.graphics.getDeltaTime();
+            curM.rect = system.getActiveMissile(curM.getObjType(), curM.getId()).getTrajectory().calculatePosition(curM.rect, true, Gdx.graphics.getDeltaTime());
             // Если корабль вылетел за пределы поля - удаляем из массива
             if(curM.rect.x + curM.rect.width < 0) {
                 system.objectLeftField(curM.getObjType(), curM.getId());
@@ -366,7 +366,7 @@ public class SpaceWar extends ApplicationAdapter {
             boolean wasBreak = false;
             ObjectSprite curM = iterPM.next();
             // Направляем его на "правый вылет"
-            curM.rect.x += system.getPlayer().getMissile().getSpeed() * Gdx.graphics.getDeltaTime();
+            curM.rect = system.getPlayer().getMissile().getTrajectory().calculatePosition(curM.rect, false, Gdx.graphics.getDeltaTime());
             // Если снаряд вылетел за пределы поля - удаляем из массива
             if(curM.rect.x + curM.rect.width >800){
                 system.objectLeftField(curM.getObjType(), curM.getId());

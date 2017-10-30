@@ -33,7 +33,7 @@ public abstract class Trajectory {
      * @param cuPos Текущая позиция
      * @return Новая позиция
      */
-    public abstract Rectangle calculatePosition(Rectangle cuPos);
+    public abstract Rectangle calculatePosition(Rectangle cuPos, boolean toLeft, float deltaTime);
     
     /**
      * Получить скорость

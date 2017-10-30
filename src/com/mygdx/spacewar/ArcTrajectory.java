@@ -28,7 +28,7 @@ public class ArcTrajectory extends Trajectory {
      * @return Новая позиция
      */
     @Override
-    public Rectangle calculatePosition(Rectangle cuPos) {
+    public Rectangle calculatePosition(Rectangle cuPos, boolean toLeft, float deltaTime) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
