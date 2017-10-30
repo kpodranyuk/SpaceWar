@@ -401,13 +401,13 @@ public class SpaceWar extends ApplicationAdapter {
     
     private void controlRespawnSpeed(){
         if (enemiesDestroyed>10) {
-            respawnTime=1500;
+            respawnTime=1000;
         }
-        else if (enemiesDestroyed>30) {
-            respawnTime=900;
-        }
-        else if (enemiesDestroyed>60) {
+        else if (enemiesDestroyed>25) {
             respawnTime=500;
+        }
+        else if (enemiesDestroyed>50) {
+            respawnTime=200;
         }
     }
 }
