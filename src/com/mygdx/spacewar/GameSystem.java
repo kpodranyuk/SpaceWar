@@ -9,7 +9,10 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.spacewar.ObjectSprite.ObjectType;
 import static com.mygdx.spacewar.ObjectSprite.ObjectType.ENMMISSILE;
+import static com.mygdx.spacewar.ObjectSprite.ObjectType.ENMMISSILEFAST;
 import static com.mygdx.spacewar.ObjectSprite.ObjectType.ENMSHIP;
+import static com.mygdx.spacewar.ObjectSprite.ObjectType.ENMSHIPFAST;
+import static com.mygdx.spacewar.ObjectSprite.ObjectType.ENMSHIPHEALTHY;
 import static com.mygdx.spacewar.ObjectSprite.ObjectType.USRMISSILE;
 import static com.mygdx.spacewar.ObjectSprite.ObjectType.USRSHIP;
 import java.util.ArrayList;
@@ -19,10 +22,12 @@ import java.util.ArrayList;
  * @author Katie
  */
 public class GameSystem {
-    private PlayerShip player;              // Игрок
-    private Array<EnemyShip> enemies;       // Враги
-    private Array<Missile> playersMissiles; // Снаряды игрока (выпущенные)
-    private Array<Missile> enemiesMissiles; // Снаряды врагов (выпущенные)
+    private PlayerShip player;                          // Игрок
+    private Array<EnemyShip> enemies;                   // Враги
+    private Array<Missile> playersMissiles;             // Снаряды игрока (выпущенные)
+    private Array<Missile> enemiesMissiles;             // Снаряды врагов (выпущенные)
+    private Array<ObjectSprite> enemiesSprites;         // Спрайты врагов
+    private Array<ObjectSprite> enemiesMissilesSprites; // Спрайты снарядов врагов
     private int curId;
     
     public enum Level { EASY, MEDIUM, HARD, ULTRAHARD }
@@ -65,8 +70,16 @@ public class GameSystem {
     public ObjectSprite generateEnemy(int enemiesKilled){
         controlLevel(enemiesKilled);
         //int enemyIndex = MathUtils.random(0, enemies.size()-1);
-        ObjectSprite enemiesView = new ObjectSprite("enemies/enemy1.png", 29, 38, ENMSHIP, controlIdCounter());
-        ObjectSprite enemiesMissileView = new ObjectSprite("fire/redpng.png", 22, 11, ENMMISSILE, controlIdCounter());
+        ObjectSprite enemiesView = getSpriteOfEnemyObject(ENMSHIP);
+        if (enemiesView==null)
+            enemiesView = new ObjectSprite("enemies/enemy1.png", 29, 38, ENMSHIP, controlIdCounter());
+        else
+            enemiesView = new ObjectSprite(enemiesView, controlIdCounter());
+        ObjectSprite enemiesMissileView = getSpriteOfEnemyObject(ENMMISSILE);
+        if (enemiesMissileView==null)
+            enemiesMissileView = new ObjectSprite("fire/redpng.png", 22, 11, ENMMISSILE, controlIdCounter());
+        else
+            enemiesMissileView = new ObjectSprite(enemiesMissileView, controlIdCounter());;
         StraightTrajectory enemiesTrajectory = new StraightTrajectory((float) 200.0, true);
         Missile enemiesMissile = new Missile(1, (float) 250.0, enemiesTrajectory, enemiesMissileView);        
         EnemyShip enemy = new EnemyShip(3, (float) 200.0, enemiesView, new Weapon(enemiesMissile));
@@ -207,6 +220,21 @@ public class GameSystem {
         else if (enemiesKilled>80) {
             currentLevel=Level.ULTRAHARD;
         }
+    }
+    
+    private ObjectSprite getSpriteOfEnemyObject(ObjectType type){
+        if (type==ENMMISSILE || type==ENMMISSILEFAST){
+            for(ObjectSprite sprite:  enemiesMissilesSprites){
+                if (sprite.getObjType()==type)
+                    return sprite;
+            }
+            return null;
+        }
+        for(ObjectSprite sprite:  enemiesSprites){
+            if (sprite.getObjType()==type)
+                return sprite;
+        }
+        return null;
     }
     
     /**
