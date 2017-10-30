@@ -49,7 +49,7 @@ public class SpaceWar extends ApplicationAdapter {
     private static final long shootDeltaTime = 220;
     private long lastShootTime;
     
-    private static final long spacePushedDeltaTime = 100;
+    private static final long spacePushedDeltaTime = 150;
     private long spacePushedTime;
 
     private int enemiesDestroyed;          /// Количество сбитых врагов
@@ -78,6 +78,7 @@ public class SpaceWar extends ApplicationAdapter {
     
     @Override
     public void pause(){
+        this.lastState = this.state;
         this.state = PAUSED;
         spacePushedTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
     }
