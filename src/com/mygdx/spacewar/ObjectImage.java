@@ -43,6 +43,20 @@ public class ObjectImage {
         this.type = type;
     }
     
+    public ObjectImage(ObjectImage other){
+        if (other == null)
+            throw new Error("Can't create view of object");
+        this.texture = other.getTexture();
+        this.rect = new Rectangle();
+        this.rect.width = other.rect.width;
+        this.rect.height = other.rect.height;
+        
+        this.rect.x = 0;
+        this.rect.y = 0;
+        
+        this.type = other.getObjType();
+    }
+    
     /**
      * Получить текстуру объекта
      * @return Текустура объекта
