@@ -25,6 +25,8 @@ public class GameSystem {
     private Array<Missile> enemiesMissiles; // Снаряды врагов (выпущенные)
     private int curId;
     
+    public enum Level { EASY, MEDIUM, HARD, ULTRAHARD }
+    private Level currentLevel;
     /**
      * Конструктор
      */
@@ -33,6 +35,7 @@ public class GameSystem {
         enemies = new Array();
         playersMissiles = new Array();
         enemiesMissiles = new Array();
+        currentLevel = Level.EASY;
         
         createPlayer();
     }
@@ -56,9 +59,11 @@ public class GameSystem {
     
     /**
      * Создать врага
+     * @param enemiesKilled Количество убитых игроком кораблей
      * @return Отображение врага
      */
-    public ObjectSprite generateEnemy(){
+    public ObjectSprite generateEnemy(int enemiesKilled){
+        controlLevel(enemiesKilled);
         //int enemyIndex = MathUtils.random(0, enemies.size()-1);
         ObjectSprite enemiesView = new ObjectSprite("enemies/enemy1.png", 29, 38, ENMSHIP, controlIdCounter());
         ObjectSprite enemiesMissileView = new ObjectSprite("fire/redpng.png", 22, 11, ENMMISSILE, controlIdCounter());
@@ -190,6 +195,18 @@ public class GameSystem {
      */
     public PlayerShip getPlayer(){
         return this.player;
+    }
+    
+    private void controlLevel(int enemiesKilled){
+        if (enemiesKilled>10) {
+            currentLevel=Level.MEDIUM;
+        }
+        else if (enemiesKilled>40) {
+            currentLevel=Level.HARD;
+        }
+        else if (enemiesKilled>80) {
+            currentLevel=Level.ULTRAHARD;
+        }
     }
     
     /**

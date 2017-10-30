@@ -43,7 +43,7 @@ public class SpaceWar extends ApplicationAdapter {
     private Array<ObjectSprite> enemysMissiles;   /// Массив врагов
     private Array<ObjectSprite> playersMissiles;  /// Массив снарядов героя
     
-    private static final long respawnTime = 2200;
+    private static long respawnTime = 2200;
     private long lastDropTime;          /// Время последнего выпадения врага
     
     private static final long shootDeltaTime = 220;
@@ -236,7 +236,7 @@ public class SpaceWar extends ApplicationAdapter {
     
     private void spawnEnemy() {
         // Создаем нового врага
-        ObjectSprite newEnemy = system.generateEnemy();
+        ObjectSprite newEnemy = system.generateEnemy(this.enemiesDestroyed);
         // Задаем ему начальную позицию
         newEnemy.rect.x = 800;//
         newEnemy.rect.y = MathUtils.random(0, 450-newEnemy.rect.height - 15);//480;
@@ -375,6 +375,7 @@ public class SpaceWar extends ApplicationAdapter {
                     if(system.isKilledShip(enemy.getObjType(), enemy.getId(), curM.getObjType(), curM.getId())){
                         this.enemies.removeValue(enemy, true);
                         enemiesDestroyed++;
+                        controlRespawnSpeed();
                     }
                     iterPM.remove();
                     wasBreak = true;
@@ -394,6 +395,18 @@ public class SpaceWar extends ApplicationAdapter {
                 }   
             }
             */
+        }
+    }
+    
+    private void controlRespawnSpeed(){
+        if (enemiesDestroyed>10) {
+            respawnTime=1500;
+        }
+        else if (enemiesDestroyed>30) {
+            respawnTime=900;
+        }
+        else if (enemiesDestroyed>60) {
+            respawnTime=500;
         }
     }
 }
