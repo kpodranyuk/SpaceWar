@@ -5,6 +5,9 @@
  */
 package com.mygdx.spacewar;
 
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.math.Rectangle;
+
 /**
  * Отображение игрового объекта
  * @author Katie
@@ -45,6 +48,30 @@ public class ObjectSprite {
      */
     public ObjectImage getImage(){
         return this.view;
+    }
+    
+    /**
+     * Получить текстуру объекта
+     * @return Текустура объекта
+     */
+    public Texture getTexture(){
+        return this.view.getTexture();
+    }
+
+    /**
+     * Получить форму объекта
+     * @return Форма объекта
+     */
+    public Rectangle getRectangle(){
+        return this.view.rect;
+    }
+
+    /**
+     * Получить тип объекта
+     * @return Тип объекта
+     */
+    public ObjectImage.ObjectType getObjType(){
+        return this.view.getObjType();
     }
     
     /**

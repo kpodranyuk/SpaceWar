@@ -48,7 +48,7 @@ public class ObjectImage {
      * @return Текустура объекта
      */
     public Texture getTexture(){
-        return new Texture (this.texture.getTextureData());
+        return this.texture;
     }
 
     /**
@@ -56,7 +56,7 @@ public class ObjectImage {
      * @return Форма объекта
      */
     public Rectangle getRectangle(){
-        return new Rectangle (this.rect);
+        return this.rect;
     }
 
     /**
