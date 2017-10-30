@@ -49,8 +49,8 @@ public class GameSystem {
         ObjectSprite playersView = new ObjectSprite("ship.png", 34, 37, USRSHIP, controlIdCounter());
         ObjectSprite playersMissileView = new ObjectSprite("fire/greenpng.png", 22, 11, USRMISSILE, controlIdCounter());
         StraightTrajectory playersTrajectory = new StraightTrajectory((float) 170.0, false);
-        Missile playersMissile = new Missile(1, (float) 170.0, playersTrajectory, playersMissileView);
-        player = new PlayerShip(1, (float) 150.0, playersView, new Weapon(playersMissile));
+        Missile playersMissile = new Missile(3, (float) 170.0, playersTrajectory, playersMissileView);
+        player = new PlayerShip(1, (float) 200.0, playersView, new Weapon(playersMissile));
         //playersMissiles.add(playersMissile);
     }
     
@@ -63,8 +63,8 @@ public class GameSystem {
         ObjectSprite enemiesView = new ObjectSprite("enemies/enemy1.png", 29, 38, ENMSHIP, controlIdCounter());
         ObjectSprite enemiesMissileView = new ObjectSprite("fire/redpng.png", 22, 11, ENMMISSILE, controlIdCounter());
         StraightTrajectory enemiesTrajectory = new StraightTrajectory((float) 200.0, true);
-        Missile enemiesMissile = new Missile(1, (float) 200.0, enemiesTrajectory, enemiesMissileView);        
-        EnemyShip enemy = new EnemyShip(1, (float) 200.0, enemiesView, new Weapon(enemiesMissile));
+        Missile enemiesMissile = new Missile(1, (float) 250.0, enemiesTrajectory, enemiesMissileView);        
+        EnemyShip enemy = new EnemyShip(3, (float) 200.0, enemiesView, new Weapon(enemiesMissile));
         enemies.add(enemy);
         //enemiesMissiles.add(enemiesMissile);
         return enemiesView;
