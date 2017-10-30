@@ -237,13 +237,13 @@ public class GameSystem {
         if (type==ENMMISSILE || type==ENMMISSILEFAST){
             for(ObjectImage sprite:  enemiesMissilesSprites){
                 if (sprite.getObjType()==type)
-                    return sprite;
+                    return new ObjectImage(sprite);
             }
             return null;
         }
         for(ObjectImage sprite:  enemiesSprites){
             if (sprite.getObjType()==type)
-                return sprite;
+                return new ObjectImage(sprite);
         }
         return null;
     }
