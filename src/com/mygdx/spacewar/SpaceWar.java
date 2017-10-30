@@ -247,14 +247,14 @@ public class SpaceWar extends ApplicationAdapter {
         
         ObjectSprite newMissile = system.makeShoot(newEnemy.getObjType(), newEnemy.getId());
         newMissile.rect.x = 800 - newEnemy.rect.width;
-        newMissile.rect.y = newEnemy.rect.y + newEnemy.rect.height / 2;
+        newMissile.rect.y = newEnemy.rect.y + newMissile.rect.height;
         enemysMissiles.add(newMissile);
     }
     
     private void shoot() {
         ObjectSprite newMissile = system.makeShoot(playersView.getObjType(), playersView.getId());
         newMissile.rect.x = playersView.rect.x + playersView.rect.width/2;
-        newMissile.rect.y = playersView.rect.y;
+        newMissile.rect.y = playersView.rect.y + newMissile.rect.height;
         this.playersMissiles.add(newMissile);
         lastShootTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
     }
