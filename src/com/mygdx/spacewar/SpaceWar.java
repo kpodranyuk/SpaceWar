@@ -79,7 +79,7 @@ public class SpaceWar extends ApplicationAdapter {
     
     @Override
     public void pause(){
-        this.lastState = this.state;
+        //this.lastState = this.state;
         this.state = PAUSED;
         spacePushedTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
     }
@@ -155,7 +155,7 @@ public class SpaceWar extends ApplicationAdapter {
                 if(Gdx.input.isKeyPressed(Keys.SPACE) && TimeUtils.nanosToMillis(TimeUtils.nanoTime()) - this.spacePushedTime > SpaceWar.spacePushedDeltaTime){
                     spacePushedTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
                     this.state = this.lastState;
-                    this.lastState = PAUSED;
+                    //this.lastState = PAUSED;
                 }   
                 break;
             case GAMEOVER:
@@ -170,8 +170,9 @@ public class SpaceWar extends ApplicationAdapter {
                 infoFont.draw(batch, "GAME OVER", 300, (float) 150);
                 infoFont.draw(batch, "YOUR SCORE IS " + this.enemiesDestroyed, 260, (float) 100);
                 infoFont.draw(batch, "PRESS ENTER TO START OVER", 170, (float) 50);
-                this.lastState = GAMEOVER;
                 batch.end();
+                this.lastState = GAMEOVER;
+                this.state = GAMEOVER;
                 if(Gdx.input.isKeyPressed(Keys.ENTER)){
                     startRoutine();
                 }
