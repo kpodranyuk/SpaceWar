@@ -29,7 +29,14 @@ public class ArcTrajectory extends Trajectory {
      */
     @Override
     public Rectangle calculatePosition(Rectangle cuPos, boolean toLeft, float deltaTime) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        float deltaX = cuPos.x;
+        if(toLeft)
+            cuPos.x -= this.getSpeed() * deltaTime;
+        else
+            cuPos.x += this.getSpeed() * deltaTime;
+        deltaX=Math.abs(800-cuPos.x);
+        cuPos.y -= (float) (deltaX/6) * deltaTime;//this.getSpeed() * deltaTime;
+        return cuPos;
     }
     
 }
