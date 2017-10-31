@@ -84,11 +84,11 @@ public class GameSystem {
         ObjectSprite playersMissileView = new ObjectSprite(playersMissileImg, 22, 11, controlIdCounter());
 
         // Снаряд игрока летит по прямой траектории
-        StraightTrajectory playersTrajectory = new StraightTrajectory((float) 170.0, false);
+        StraightTrajectory playersTrajectory = new StraightTrajectory((float) 250.0, false);
         // Создаем снаряд игрока
-        Missile playersMissile = new Missile(1, (float) 170.0, playersTrajectory, playersMissileView);
+        Missile playersMissile = new Missile(1, (float) 250.0, playersTrajectory, playersMissileView);
         // Создаем объект игрока
-        player = new PlayerShip(1, (float) 200.0, playersView, new Weapon(playersMissile));
+        player = new PlayerShip(3, (float) 200.0, playersView, new Weapon(playersMissile));
     }
     
     /**
@@ -174,7 +174,7 @@ public class GameSystem {
         // Создаем спрайт врага
         enemiesView = new ObjectSprite(enemiesImg, 40, 52, controlIdCounter());
         // Создаем врага с учетом того, что у данного типа нет снарядов и большое хп
-        EnemyShip enemy = new EnemyShip(4, (float) 170.0, enemiesView, new Weapon(null));
+        EnemyShip enemy = new EnemyShip(6, (float) 170.0, enemiesView, new Weapon(null));
         // Возвращаем созданного врага
         return enemy;
     }
@@ -206,11 +206,11 @@ public class GameSystem {
         enemiesMissileView = new ObjectSprite(enemiesMissileImg, 22, 11, controlIdCounter());
         
         // Снаряд данного врага стреляет по дуге, поэтому у него дуговая траектория
-        ArcTrajectory enemiesTrajectory = new ArcTrajectory((float) 280.0, true);
+        ArcTrajectory enemiesTrajectory = new ArcTrajectory((float) 330.0, true);
         // Создаем снаряд врага
-        Missile enemiesMissile = new Missile(1, (float) 280.0, enemiesTrajectory, enemiesMissileView);        
+        Missile enemiesMissile = new Missile(2, (float) 330.0, enemiesTrajectory, enemiesMissileView);        
         // Создаем врага
-        EnemyShip enemy = new EnemyShip(1, (float) 200.0, enemiesView, new Weapon(enemiesMissile));
+        EnemyShip enemy = new EnemyShip(2, (float) 300.0, enemiesView, new Weapon(enemiesMissile));
         // Возвращаем созданного врага
         return enemy;
     }
