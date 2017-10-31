@@ -82,10 +82,12 @@ public class GameSystem {
         if(enemyIndex==1){
             enemy = generateEasyEnemy();
         }
-        else if(enemyIndex==2 || enemyIndex==3){
+        else if(enemyIndex==2){
             enemy = generateHealthyEnemy();
         }
-            
+        else if(enemyIndex==3){
+            enemy = generateFastEnemy();
+        }            
         enemies.add(enemy);
         //enemiesMissiles.add(enemiesMissile);
         return enemy.getView();
@@ -133,7 +135,7 @@ public class GameSystem {
             enemiesImg = new ObjectImage("enemies/enemy3.png", ENMSHIPFAST);
             enemiesSprites.add(enemiesImg);
         }
-        enemiesView = new ObjectSprite(enemiesImg, 29, 38, controlIdCounter());
+        enemiesView = new ObjectSprite(enemiesImg, 19, 31, controlIdCounter());
         
         ObjectSprite enemiesMissileView = null;
         ObjectImage enemiesMissileImg = getImageOfEnemyObject(ENMMISSILE);
@@ -143,8 +145,8 @@ public class GameSystem {
         }
         enemiesMissileView = new ObjectSprite(enemiesMissileImg, 22, 11, controlIdCounter());
         
-        StraightTrajectory enemiesTrajectory = new StraightTrajectory((float) 200.0, true);
-        Missile enemiesMissile = new Missile(1, (float) 250.0, enemiesTrajectory, enemiesMissileView);        
+        ArcTrajectory enemiesTrajectory = new ArcTrajectory((float) 280.0, true);
+        Missile enemiesMissile = new Missile(1, (float) 280.0, enemiesTrajectory, enemiesMissileView);        
         EnemyShip enemy = new EnemyShip(1, (float) 200.0, enemiesView, new Weapon(enemiesMissile));
         return enemy;
     }
@@ -162,8 +164,8 @@ public class GameSystem {
             this.playersMissiles.add(newMissile);
             return newMissileView;
         }
-        if (type == ENMSHIP){
-            Ship currentEnemy = getActiveEnemy(ENMSHIP, objectId);
+        if (type == ENMSHIP || type == ENMSHIPFAST){
+            Ship currentEnemy = getActiveEnemy(type, objectId);
             ObjectSprite newMissileView = new ObjectSprite (currentEnemy.getMissile().getView(), controlIdCounter());
             Missile newMissile = new Missile (currentEnemy.getMissile(), newMissileView);
             this.enemiesMissiles.add(newMissile);
@@ -193,7 +195,7 @@ public class GameSystem {
     public Ship getActiveEnemy(ObjectType type, int enemyId){
         if (enemyId<0)
             return null;
-        if (type == ENMSHIP || type == ENMSHIPHEALTHY){
+        if (type == ENMSHIP || type == ENMSHIPHEALTHY || type == ENMSHIPFAST){
             for (Ship enemy: this.enemies){
                 if (enemy.getView().getId() == enemyId)
                     return enemy;
@@ -272,10 +274,10 @@ public class GameSystem {
     }
     
     private void controlLevel(int enemiesKilled){
-        if (enemiesKilled>10) {
+        if (enemiesKilled>10 && enemiesKilled<=40) {
             currentLevel=Level.MEDIUM;
         }
-        else if (enemiesKilled>40) {
+        else if (enemiesKilled>40 && enemiesKilled<=80) {
             currentLevel=Level.HARD;
         }
         else if (enemiesKilled>80) {
