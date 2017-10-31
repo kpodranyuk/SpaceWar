@@ -474,18 +474,4 @@ public class GameSystem {
         // Если корабль не найден, возвращаем null
         return null;
     }
-    
-    /**
-     * Получить корабль по его типу
-     * TODO Доделать метод
-     * @param type Тип корабля
-     * @return Корабль с данным типом
-     */
-    /*public Ship getShip(ObjectType type){
-        if (type == USRSHIP)
-            return this.player;
-        if (type == ENMSHIP)
-            return this.enemies.get(0);
-        return null;
-    }*/
 }
