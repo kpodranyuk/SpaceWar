@@ -47,7 +47,6 @@ public abstract class Ship {
      * @return Снаряд корабля
      */
     public Missile getMissile(){
-        // Заглушка
         return this.weapon.getMissile();
     }
     
@@ -56,7 +55,6 @@ public abstract class Ship {
      * @return Здоровье корабля
      */
     public int getCurrentHealth(){
-        // Заглушка
         return this.currentHealth;
     }
     
