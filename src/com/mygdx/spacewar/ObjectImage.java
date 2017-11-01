@@ -16,7 +16,7 @@ public class ObjectImage {
     /**
      * Возможные типы объекта
      */
-    public enum ObjectType { USRMISSILE, ENMMISSILE, ENMMISSILEFAST, USRSHIP, ENMSHIP, ENMSHIPFAST, ENMSHIPHEALTHY }
+    public enum ObjectType { USRMISSILE, ENMMISSILE, ENMMISSILEFAST, USRSHIP, ENMSHIP, ENMSHIPFAST, ENMSHIPHEALTHY, GAMEBONUS }
     private ObjectType type;    /// Тип объекта
     
     /**
