@@ -357,6 +357,8 @@ public class GameSystem {
             this.playersMissiles.removeValue(m, true);
             // Если враг убит, возвращаем true и удаляем его из списка
             if (s.getCurrentHealth() <= 0){
+                this.player.increasePoints(s.getMaxHealth());
+                this.enemiesToEndGame-=1;
                 enemies.removeValue((EnemyShip) s, true);
                 return true;
             }
@@ -576,10 +578,7 @@ public class GameSystem {
         }
     }
     
-    public int howMuchEnemiesToWin(int enemiesKilled){
-        if(enemiesKilled<0)
-            enemiesKilled=0;
-        this.enemiesToEndGame-=enemiesKilled;
+    public int howMuchEnemiesToWin(){
         return this.enemiesToEndGame;
     }
     

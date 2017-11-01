@@ -11,6 +11,7 @@ package com.mygdx.spacewar;
  */
 public class PlayerShip extends Ship {
 
+    private int points;
     /**
      * Конструктор пользовательского корабля
      * @param health Здоровье корабля
@@ -20,6 +21,7 @@ public class PlayerShip extends Ship {
      */
     public PlayerShip(int health, float speed, ObjectSprite view, Weapon weapon) {
         super(health, speed, view, weapon);
+        points = 0;
     }
 
     /**
@@ -28,5 +30,13 @@ public class PlayerShip extends Ship {
      */
     public Missile shoot(){
         return this.getMissile();
+    }
+    
+    public int getPoints(){
+        return this.points;
+    }
+    
+    public void increasePoints(int earnedPoints) {
+        this.points+=earnedPoints;
     }
 }

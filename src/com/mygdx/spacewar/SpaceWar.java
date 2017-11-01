@@ -110,7 +110,7 @@ public class SpaceWar extends ApplicationAdapter {
                 // Отрисовываем фон
                 batch.draw(back, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
                 // Отрисовываем количество сбитых кораблей
-                gameFont.draw(batch, "Enemies to kill: " + system.howMuchEnemiesToWin(enemiesDestroyed) +"Game points: "+ 0 + ". HP: " + system.getPlayer().getCurrentHealth(), 0, 450);
+                gameFont.draw(batch, "Enemies to kill: " + system.howMuchEnemiesToWin() +". Game points: "+ system.getPlayer().getPoints() + ". HP: " + system.getPlayer().getCurrentHealth(), 0, 450);
                 // Отрисовываем корабль героя
                 batch.draw(playersView.getTexture(), playersView.rect.x, playersView.rect.y);
                 // Отрисовываем все имеющиеся корабли врага
