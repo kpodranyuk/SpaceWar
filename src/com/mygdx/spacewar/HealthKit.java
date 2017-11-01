@@ -13,14 +13,14 @@ public class HealthKit extends Bonus{
     
     private final int healthBonus;  /// Количество здоровья, прибавляемое кораблю
 
-    public HealthKit(BonusType type, ObjectSprite sprite) {
-        super(type, sprite);
+    public HealthKit(BonusType type, ObjectSprite sprite, StraightTrajectory traj) {
+        super(type, sprite, traj);
         this.healthBonus = 1;
     }
 
     @Override
     public void activate(Ship shipToTakeBonus) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        shipToTakeBonus.takePill(healthBonus);
     }
     
 }

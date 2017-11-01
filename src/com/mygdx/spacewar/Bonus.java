@@ -19,16 +19,18 @@ public abstract class Bonus {
     public enum BonusType{ HEALTHKIT, WEAPONBOOST}
     private BonusType type;                         /// Тип бонуса
     private ObjectSprite sprite;                    /// Спрайт объекта
+    private StraightTrajectory traj;                /// Траектория объекта
 
     /**
      * Конструктор
      * @param type Тип бонуса
      * @param sprite Отображение бонуса
      */
-    public Bonus(BonusType type, ObjectSprite sprite){
-        if(type == null || sprite == null || type == HEALTHKIT || type == WEAPONBOOST ) {
+    public Bonus(BonusType type, ObjectSprite sprite, StraightTrajectory traj){
+        if(type == null || traj == null || sprite == null || type == HEALTHKIT || type == WEAPONBOOST ) {
             this.type = type;
             this.sprite = sprite;
+            this.traj = traj;
         }
         else
             throw new Error ("Can't create bonus");
@@ -48,6 +50,10 @@ public abstract class Bonus {
      */
     public ObjectSprite getView(){
         return this.sprite;
+    }
+    
+    public StraightTrajectory getTrajectory() {
+        return this.traj;
     }
     
     /**

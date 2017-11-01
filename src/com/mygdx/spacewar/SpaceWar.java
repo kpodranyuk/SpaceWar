@@ -43,9 +43,13 @@ public class SpaceWar extends ApplicationAdapter {
     private Array<ObjectSprite> enemies;   /// Массив врагов
     private Array<ObjectSprite> enemysMissiles;   /// Массив врагов
     private Array<ObjectSprite> playersMissiles;  /// Массив снарядов героя
+    private Array<ObjectSprite> bonuses;  /// Массив бонусов
     
     private static long respawnTime = 2200;
     private long lastDropTime;          /// Время последнего выпадения врага
+    
+    private static final long bonusDeltaTime = 6000;
+    private long lastBonusTime;
     
     private static final long shootDeltaTime = 350;
     private long lastShootTime;
@@ -109,11 +113,17 @@ public class SpaceWar extends ApplicationAdapter {
                 // Отрисовываем все имеющиеся корабли врага
                 for(ObjectSprite enemy: enemies) {
                     batch.draw(enemy.getTexture(), enemy.rect.x, enemy.rect.y);
-                }   for(ObjectSprite enemyMissile: this.enemysMissiles) {
+                }   
+                for(ObjectSprite enemyMissile: this.enemysMissiles) {
                     batch.draw(enemyMissile.getTexture(), enemyMissile.rect.x, enemyMissile.rect.y);
-                }   for(ObjectSprite playersMissile: this.playersMissiles) {
+                }   
+                for(ObjectSprite bonus: this.bonuses){
+                    batch.draw(bonus.getTexture(), bonus.rect.x, bonus.rect.y);
+                }
+                for(ObjectSprite playersMissile: this.playersMissiles) {
                     batch.draw(playersMissile.getTexture(), playersMissile.rect.x, playersMissile.rect.y);
-                }   // Завершаем сессию
+                }   
+                // Завершаем сессию
                 batch.end();
                 // Если нужно опустить корабль - опускаем с заданной скоростью
                 if(Gdx.input.isKeyPressed(Keys.DOWN))
@@ -136,9 +146,14 @@ public class SpaceWar extends ApplicationAdapter {
                 long timePassed = TimeUtils.nanosToMillis(TimeUtils.nanoTime()) - lastDropTime;
                 if(timePassed > respawnTime)
                     spawnEnemy();
+                timePassed = TimeUtils.nanosToMillis(TimeUtils.nanoTime()) - this.lastBonusTime;
+                if(timePassed > bonusDeltaTime && this.bonuses.size == 0){
+                    showBonus();
+                }  
                 controlEnemiesSprites();
                 controlEnemiesMissilesPosition();
                 controlPlayerMissilesPosition();
+                controlBonusesPosition();                              
                 break;
             case PAUSED:
                 // Сообщаем SpriteBatch использовать систему координат камеры. (матрицу проекции)
@@ -183,6 +198,10 @@ public class SpaceWar extends ApplicationAdapter {
     }
     
     private void startRoutine(){
+        if (bonuses!=null)
+            bonuses.clear();
+        else
+            bonuses = new Array<ObjectSprite>();
         if (enemies!=null) 
             enemies.clear();
         else
@@ -199,7 +218,8 @@ public class SpaceWar extends ApplicationAdapter {
         this.lastDropTime = 0;          /// Время последнего выпадения врага
         this.lastShootTime = 0;
         this.spacePushedTime = 0;
-        this.enemiesDestroyed = 0;          /// Количество сбитых врагов      
+        this.enemiesDestroyed = 0;          /// Количество сбитых врагов   
+        this.lastBonusTime = 0;
         
         // Создаем модель
         system = new GameSystem();
@@ -226,6 +246,18 @@ public class SpaceWar extends ApplicationAdapter {
         batch = new SpriteBatch();
         state = PLAY;
         lastState = PLAY;
+    }
+    
+    private void showBonus(){
+        // Задаем ему начальную позицию
+        ObjectSprite bonus = system.createHealthBouns();
+        if (bonus!=null){
+            bonus.rect.x = 800;//
+            bonus.rect.y = MathUtils.random(0, 450-bonus.rect.height - 15);//480;
+            // Добавляем его в массив
+            bonuses.add(bonus);
+            lastBonusTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
+        }
     }
 
     @Override
@@ -401,6 +433,31 @@ public class SpaceWar extends ApplicationAdapter {
                 }   
             }
             */
+        }
+    }
+    
+    // Может пересечься с кораблем пользователя
+    private void controlBonusesPosition() {
+        Iterator<ObjectSprite> iterB = this.bonuses.iterator();
+        // Для каждого бонуса..
+        while(iterB.hasNext()) {
+            ObjectSprite curB = iterB.next();
+            // Направляем его на "левый вылет"
+            curB.rect = system.getBonusWithId(curB.getId()).getTrajectory().calculatePosition(curB.rect, true, Gdx.graphics.getDeltaTime());
+            // Если бонус вылетел за пределы поля - удаляем из массива
+            if(curB.rect.x + curB.rect.width < 0){
+                system.objectLeftField(curB.getObjType(), curB.getId());
+                iterB.remove();
+                curB = null;
+                continue;
+            }
+            // Если бонус столкнулся с игроком
+            if(curB.rect.overlaps(this.playersView.rect)) {
+                system.caughtBonus(curB.getId());
+                iterB.remove();
+                curB = null;
+                break;
+            }
         }
     }
     

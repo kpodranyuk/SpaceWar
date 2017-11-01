@@ -7,15 +7,16 @@ package com.mygdx.spacewar;
 
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
+import static com.mygdx.spacewar.Bonus.BonusType.HEALTHKIT;
 import com.mygdx.spacewar.ObjectImage.ObjectType;
 import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMMISSILE;
 import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMMISSILEFAST;
 import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMSHIP;
 import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMSHIPFAST;
 import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMSHIPHEALTHY;
+import static com.mygdx.spacewar.ObjectImage.ObjectType.GAMEBONUS;
 import static com.mygdx.spacewar.ObjectImage.ObjectType.USRMISSILE;
 import static com.mygdx.spacewar.ObjectImage.ObjectType.USRSHIP;
-import java.util.ArrayList;
 
 /**
  * Игровая система, управляющая процессом игры
@@ -26,9 +27,11 @@ public class GameSystem {
     private Array<EnemyShip> enemies;                   /// Враги
     private Array<Missile> playersMissiles;             /// Снаряды игрока (выпущенные)
     private Array<Missile> enemiesMissiles;             /// Снаряды врагов (выпущенные)
+    private Array<Bonus> bonuses;                       /// Игровые бонусы (выпущенные)
     
     private Array<ObjectImage> enemiesSprites;          /// Спрайты врагов
     private Array<ObjectImage> enemiesMissilesSprites;  /// Спрайты снарядов врагов
+    private ObjectImage healthKitImage;                 /// Изображение бонуса здоровья
     private int curId;                                  /// Текущий идентификатор
     
     /**
@@ -53,6 +56,9 @@ public class GameSystem {
         
         enemiesSprites = new Array();
         enemiesMissilesSprites = new Array();
+        
+        bonuses = new Array();
+        healthKitImage = null;
         
         // Создаем игрока
         createPlayer();
@@ -404,6 +410,13 @@ public class GameSystem {
             this.enemies.removeValue((EnemyShip)this.getActiveEnemy(type, id), true);
             this.enemies.shrink();
         }
+        // Если тип объекта - вражеский корабль
+        else if (type == GAMEBONUS) {
+            System.out.println("Freed game bonus with id " + id);
+            // Удаляем объект из массива и ужимаем занимаемую им память
+            this.bonuses.removeValue(this.getBonusWithId(id), true);
+            this.bonuses.shrink();
+        }
     }
     
     /**
@@ -473,5 +486,48 @@ public class GameSystem {
         }
         // Если корабль не найден, возвращаем null
         return null;
+    }
+    
+    /**
+     * Создать бонус здоровья
+     * @return null, если бонус не создан, иначе - спрайт бонуса
+     */
+    public ObjectSprite createHealthBouns(){
+        // Будем считать, что бонус здоровья выдается только при уровне игры не легче среднего
+        // Также игрок должен нуждаться в бонусе здоровья
+        if(levelToInt()>1 && this.player.getCurrentHealth()<this.player.getMaxHealth()){
+            // Создать бонус здоровья
+            if (healthKitImage == null){
+                healthKitImage = new ObjectImage("firstaid_kit.png", GAMEBONUS);
+            }
+            ObjectSprite kitSprite = new ObjectSprite(healthKitImage, 15, 15, controlIdCounter());
+            StraightTrajectory traj = new StraightTrajectory((float) 300.0, true);
+            HealthKit kit = new HealthKit(HEALTHKIT, kitSprite, traj);
+            bonuses.add(kit);
+            return kit.getView();
+        }
+        return null;
+    }
+    
+    public Bonus getBonusWithId(int id){
+        // Проверяем на корректность идентификатор
+        if (id<0)
+            return null;
+        // Если идентификатор корректный..
+        // Для каждого активного бонуса в массиве бонусов..
+        for (Bonus bonus: this.bonuses){
+            // Если идентификатор текущего врага совпадает с требуемым, возвращаем текущего врага
+            if (bonus.getView().getId() == id)
+                return bonus;
+        }
+        // Возвращаем null, так как враг так и не нашелся
+        return null;
+    }
+    
+    public void caughtBonus(int bonusId) {
+        Bonus bonus = getBonusWithId(bonusId);
+        if (bonus!=null){
+            bonus.activate(player);
+        }
     }
 }
