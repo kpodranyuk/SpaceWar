@@ -10,7 +10,7 @@ package com.mygdx.spacewar;
  * @author Katie
  */
 public abstract class Ship {
-    protected int health;       /// Здоровье корабля
+    protected int currentHealth;       /// Здоровье корабля
     private float speed;        /// Скорость корабля
     private ObjectSprite view;  /// Отображение корабля
     private Weapon weapon;      /// Оружие корабля
@@ -25,7 +25,7 @@ public abstract class Ship {
     public Ship(int health, float speed, ObjectSprite view, Weapon weapon){
         if(health<=0 || speed <=0.0 || view == null || weapon == null)
             throw new Error("Can't create ship");
-        this.health = health;
+        this.currentHealth = health;
         this.speed = speed;
         this.view = view;
         this.weapon = weapon;
@@ -53,9 +53,9 @@ public abstract class Ship {
      * Получить здоровье корабля
      * @return Здоровье корабля
      */
-    public int getHealth(){
+    public int getCurrentHealth(){
         // Заглушка
-        return this.health;
+        return this.currentHealth;
     }
     
     /**
@@ -73,7 +73,7 @@ public abstract class Ship {
     public void takeDamage(int damage){
         if (damage<0)
             throw new Error("Ship can't take negative damage");
-        this.health-=damage;
+        this.currentHealth-=damage;
     }
     
     /**
@@ -83,6 +83,6 @@ public abstract class Ship {
     public void takePill(int healthCount) {
         if (healthCount<0)
             throw new Error("Ship can't take negative health");
-        this.health+=healthCount;
+        this.currentHealth+=healthCount;
     }
 }

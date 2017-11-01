@@ -314,7 +314,7 @@ public class GameSystem {
                 // Уничтожаем вражеский снаряд
                 this.enemiesMissiles.removeValue(m, true);
                 // Возвращаем значение того, что здоровье игрока меньше либо равно 0 (мертв ли игрок)
-                return this.player.getHealth() <= 0;
+                return this.player.getCurrentHealth() <= 0;
             }
         }
         // Иначе если корабль вражеский, а снаряд пользовательский..
@@ -330,7 +330,7 @@ public class GameSystem {
             // Удаляем пользовательский снаряд
             this.playersMissiles.removeValue(m, true);
             // Если враг убит, возвращаем true и удаляем его из списка
-            if (s.getHealth() <= 0){
+            if (s.getCurrentHealth() <= 0){
                 enemies.removeValue((EnemyShip) s, true);
                 return true;
             }
