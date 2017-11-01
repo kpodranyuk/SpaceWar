@@ -15,6 +15,7 @@ public abstract class Ship {
     private float speed;                /// Скорость корабля
     private ObjectSprite view;          /// Отображение корабля
     private Weapon weapon;              /// Оружие корабля
+    private int weaponsCount;           /// Количество активных оружий у корабля
     
     /**
      * Конструктор корабля
@@ -31,6 +32,7 @@ public abstract class Ship {
         this.speed = speed;
         this.view = view;
         this.weapon = weapon;
+        this.weaponsCount = 1;
     }
     
     /**
@@ -92,5 +94,19 @@ public abstract class Ship {
         if (healthCount<0)
             throw new Error("Ship can't take negative health");
         this.currentHealth+=healthCount;
+    }
+    
+    public int getActiveWeaponsCount(){
+        return weaponsCount;
+    }
+    
+    /**
+     * Установить количество активных орудий корабля
+     * @param weaponsCount Количество активных орудий корабля для установки
+     */
+    public void setActiveWeaponsCount(int weaponsCount){
+        if (weaponsCount<0)
+            throw new Error("Ship can't take negative weapons сount");
+        this.weaponsCount=weaponsCount;
     }
 }

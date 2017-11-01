@@ -48,8 +48,11 @@ public class SpaceWar extends ApplicationAdapter {
     private static long respawnTime = 2200;
     private long lastDropTime;          /// Время последнего выпадения врага
     
-    private static final long bonusDeltaTime = 6000;
-    private long lastBonusTime;
+    private static final long healthBonusDeltaTime = 6000;
+    private long lastHealthBonusTime;
+    
+    private static final long weaponBonusDeltaTime = 10000;
+    private long lastweaponBonusTime;
     
     private static final long shootDeltaTime = 350;
     private long lastShootTime;
@@ -146,9 +149,13 @@ public class SpaceWar extends ApplicationAdapter {
                 long timePassed = TimeUtils.nanosToMillis(TimeUtils.nanoTime()) - lastDropTime;
                 if(timePassed > respawnTime)
                     spawnEnemy();
-                timePassed = TimeUtils.nanosToMillis(TimeUtils.nanoTime()) - this.lastBonusTime;
-                if(timePassed > bonusDeltaTime && this.bonuses.size == 0){
-                    showBonus();
+                timePassed = TimeUtils.nanosToMillis(TimeUtils.nanoTime()) - this.lastHealthBonusTime;
+                if(timePassed > healthBonusDeltaTime && this.bonuses.size == 0){
+                    showHealthBonus();
+                }  
+                timePassed = TimeUtils.nanosToMillis(TimeUtils.nanoTime()) - this.lastweaponBonusTime;
+                if(timePassed > weaponBonusDeltaTime && this.bonuses.size == 0){
+                    showWeaponBonus();
                 }  
                 controlEnemiesSprites();
                 controlEnemiesMissilesPosition();
@@ -219,7 +226,7 @@ public class SpaceWar extends ApplicationAdapter {
         this.lastShootTime = 0;
         this.spacePushedTime = 0;
         this.enemiesDestroyed = 0;          /// Количество сбитых врагов   
-        this.lastBonusTime = 0;
+        this.lastHealthBonusTime = 0;
         
         // Создаем модель
         system = new GameSystem();
@@ -248,7 +255,7 @@ public class SpaceWar extends ApplicationAdapter {
         lastState = PLAY;
     }
     
-    private void showBonus(){
+    private void showHealthBonus(){
         // Задаем ему начальную позицию
         ObjectSprite bonus = system.createHealthBouns();
         if (bonus!=null){
@@ -256,7 +263,18 @@ public class SpaceWar extends ApplicationAdapter {
             bonus.rect.y = MathUtils.random(0, 450-bonus.rect.height - 15);//480;
             // Добавляем его в массив
             bonuses.add(bonus);
-            lastBonusTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
+            lastHealthBonusTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
+        }
+    }
+    
+    private void showWeaponBonus(){
+        ObjectSprite bonus = system.createWeaponBouns();
+        if (bonus!=null){
+            bonus.rect.x = 800;//
+            bonus.rect.y = MathUtils.random(0, 450-bonus.rect.height - 15);//480;
+            // Добавляем его в массив
+            bonuses.add(bonus);
+            lastweaponBonusTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
         }
     }
 
@@ -282,18 +300,36 @@ public class SpaceWar extends ApplicationAdapter {
         // Изменяем время "выпада" врага
         lastDropTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
         if (newEnemy.getObjType()!=ENMSHIPHEALTHY){
-            ObjectSprite newMissile = system.makeShoot(newEnemy.getObjType(), newEnemy.getId());
-            newMissile.rect.x = 800 - newEnemy.rect.width;
-            newMissile.rect.y = newEnemy.rect.y + newMissile.rect.height;
-            enemysMissiles.add(newMissile);
+            Array<ObjectSprite> missiles = new Array<ObjectSprite>();
+            missiles = system.makeShoot(newEnemy.getObjType(), newEnemy.getId());
+            for (ObjectSprite missile: missiles){
+                missile.rect.x = 800 - newEnemy.rect.width;
+                missile.rect.y = newEnemy.rect.y + missile.rect.height;
+                enemysMissiles.add(missile);
+            }
         }
     }
     
     private void shoot() {
-        ObjectSprite newMissile = system.makeShoot(playersView.getObjType(), playersView.getId());
-        newMissile.rect.x = playersView.rect.x + playersView.rect.width/2;
-        newMissile.rect.y = playersView.rect.y + newMissile.rect.height;
-        this.playersMissiles.add(newMissile);
+        Array<ObjectSprite> userMissiles = new Array<ObjectSprite>();
+        userMissiles = system.makeShoot(playersView.getObjType(), playersView.getId());
+        float offsetHeight; 
+        float startHeight;
+        int counter=0;
+        if (userMissiles.size == 1){            
+            offsetHeight = 0;
+            startHeight = playersView.rect.y;
+        }
+        else{
+            offsetHeight = playersView.rect.height/(userMissiles.size-1);
+            startHeight = playersView.rect.y + playersView.rect.height/2;
+        }
+        for (ObjectSprite missile: userMissiles){
+            missile.rect.x = playersView.rect.x + playersView.rect.width/2;
+            missile.rect.y = startHeight - offsetHeight*counter + missile.rect.height;
+            this.playersMissiles.add(missile);
+            counter++;
+        }
         lastShootTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
     }
     
@@ -452,7 +488,7 @@ public class SpaceWar extends ApplicationAdapter {
                 continue;
             }
             // Если бонус столкнулся с игроком
-            if(curB.rect.overlaps(this.playersView.rect)) {
+            else if(curB.rect.overlaps(this.playersView.rect)) {
                 system.caughtBonus(curB.getId());
                 iterB.remove();
                 curB = null;

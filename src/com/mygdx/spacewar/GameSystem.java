@@ -8,6 +8,7 @@ package com.mygdx.spacewar;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import static com.mygdx.spacewar.Bonus.BonusType.HEALTHKIT;
+import static com.mygdx.spacewar.Bonus.BonusType.WEAPONBOOST;
 import com.mygdx.spacewar.ObjectImage.ObjectType;
 import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMMISSILE;
 import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMMISSILEFAST;
@@ -32,7 +33,11 @@ public class GameSystem {
     private Array<ObjectImage> enemiesSprites;          /// Спрайты врагов
     private Array<ObjectImage> enemiesMissilesSprites;  /// Спрайты снарядов врагов
     private ObjectImage healthKitImage;                 /// Изображение бонуса здоровья
+    private ObjectImage weaponBoostImage;               /// Изображение бонуса оружия
     private int curId;                                  /// Текущий идентификатор
+    private int maxBonusShoots = 6;                     /// Максимальная временная длина бонуса
+    private int shootsSinceBonus;
+    private int currentWeaponBonusId;
     
     /**
      * Уровень игры, отвечающий за разнообразие создаваемых врагов
@@ -59,6 +64,8 @@ public class GameSystem {
         
         bonuses = new Array();
         healthKitImage = null;
+        shootsSinceBonus=0;
+        currentWeaponBonusId=0;
         
         // Создаем игрока
         createPlayer();
@@ -227,19 +234,30 @@ public class GameSystem {
      * @param objectId Id объекта, инициирующего выстрел
      * @return Отображение снаряда
      */
-    public ObjectSprite makeShoot(ObjectType type, int objectId){
+    public Array<ObjectSprite> makeShoot(ObjectType type, int objectId){
         if (type == USRSHIP){
-            ObjectSprite newMissileView = new ObjectSprite (this.player.getMissile().getView(), controlIdCounter());
-            Missile newMissile = new Missile (this.player.getMissile(), newMissileView);
-            this.playersMissiles.add(newMissile);
-            return newMissileView;
+            Array<ObjectSprite> ms = new Array<ObjectSprite>();
+            if(this.player.getActiveWeaponsCount()>1)
+                shootsSinceBonus++;
+            controlBonusTime(currentWeaponBonusId,shootsSinceBonus);
+            for(int i=0; i<this.player.getActiveWeaponsCount(); i++){
+                ObjectSprite newMissileView = new ObjectSprite (this.player.getMissile().getView(), controlIdCounter());
+                Missile newMissile = new Missile (this.player.getMissile(), newMissileView);
+                this.playersMissiles.add(newMissile);
+                ms.add(newMissileView);
+            }            
+            return ms;
         }
         if (type == ENMSHIP || type == ENMSHIPFAST){
             Ship currentEnemy = getActiveEnemy(type, objectId);
-            ObjectSprite newMissileView = new ObjectSprite (currentEnemy.getMissile().getView(), controlIdCounter());
-            Missile newMissile = new Missile (currentEnemy.getMissile(), newMissileView);
-            this.enemiesMissiles.add(newMissile);
-            return newMissileView;
+            Array<ObjectSprite> ms = new Array<ObjectSprite>();
+            for(int i=0; i<currentEnemy.getActiveWeaponsCount(); i++){                
+                ObjectSprite newMissileView = new ObjectSprite (currentEnemy.getMissile().getView(), controlIdCounter());
+                Missile newMissile = new Missile (currentEnemy.getMissile(), newMissileView);
+                this.enemiesMissiles.add(newMissile);
+                ms.add(newMissileView);
+            }
+            return ms;
         }            
         return null;
     }
@@ -509,6 +527,23 @@ public class GameSystem {
         return null;
     }
     
+    public ObjectSprite createWeaponBouns() {
+        // Будем считать, что бонус оружия выдается только при сложном уровне игры
+        if(levelToInt()>2){
+            // Создать бонус здоровья
+            if (weaponBoostImage == null){
+                weaponBoostImage = new ObjectImage("super_missile.png", GAMEBONUS);
+            }
+            ObjectSprite wbSprite = new ObjectSprite(weaponBoostImage, 15, 15, controlIdCounter());
+            StraightTrajectory traj = new StraightTrajectory((float) 300.0, true);
+            WeaponBoost wb = new WeaponBoost(WEAPONBOOST, wbSprite, traj);
+            bonuses.add(wb);
+            currentWeaponBonusId = this.curId;
+            return wb.getView();
+        }
+        return null;
+    }
+    
     public Bonus getBonusWithId(int id){
         // Проверяем на корректность идентификатор
         if (id<0)
@@ -528,6 +563,14 @@ public class GameSystem {
         Bonus bonus = getBonusWithId(bonusId);
         if (bonus!=null){
             bonus.activate(player);
+        }
+    }
+    
+    private void controlBonusTime(int bonusId, int shootsSinceBonusOn){
+        Bonus bonus = getBonusWithId(bonusId);
+        if (bonus!=null && bonus.getType() == WEAPONBOOST && shootsSinceBonusOn>maxBonusShoots){
+            ((WeaponBoost)bonus).deactivate(player);
+            shootsSinceBonus=0;
         }
     }
 }
