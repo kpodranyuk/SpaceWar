@@ -67,7 +67,7 @@ public class GameSystem {
         healthKitImage = null;
         shootsSinceBonus=0;
         currentWeaponBonusId=0;
-        enemiesToEndGame = 500;
+        enemiesToEndGame = 250;
         
         // Создаем игрока
         createPlayer();
@@ -103,7 +103,7 @@ public class GameSystem {
         // Создаем снаряд игрока
         Missile playersMissile = new Missile(1, (float) 250.0, playersTrajectory, playersMissileView);
         // Создаем объект игрока
-        player = new PlayerShip(3, (float) 200.0, playersView, new Weapon(playersMissile));
+        player = new PlayerShip(3, (float) 250.0, playersView, new Weapon(playersMissile));
     }
     
     /**
@@ -542,7 +542,6 @@ public class GameSystem {
             StraightTrajectory traj = new StraightTrajectory((float) 300.0, true);
             WeaponBoost wb = new WeaponBoost(WEAPONBOOST, wbSprite, traj);
             bonuses.add(wb);
-            currentWeaponBonusId = this.curId;
             return wb.getView();
         }
         return null;
@@ -567,6 +566,10 @@ public class GameSystem {
         Bonus bonus = getBonusWithId(bonusId);
         if (bonus!=null){
             bonus.activate(player);
+            if (bonus.getType() == WEAPONBOOST){
+                shootsSinceBonus = 0;
+                currentWeaponBonusId = bonusId;
+            }
         }
     }
     
@@ -575,6 +578,7 @@ public class GameSystem {
         if (bonus!=null && bonus.getType() == WEAPONBOOST && shootsSinceBonusOn>maxBonusShoots){
             ((WeaponBoost)bonus).deactivate(player);
             shootsSinceBonus=0;
+            currentWeaponBonusId=-1;
         }
     }
     

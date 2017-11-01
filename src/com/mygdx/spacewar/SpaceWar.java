@@ -192,7 +192,7 @@ public class SpaceWar extends ApplicationAdapter {
                 batch.draw(back, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
                 // Отрисовываем сообщение о том, что игра приостановлена
                 infoFont.draw(batch, "GAME OVER", 300, (float) 150);
-                infoFont.draw(batch, "YOUR SCORE IS " + this.enemiesDestroyed, 260, (float) 100);
+                infoFont.draw(batch, "YOUR SCORE IS " + system.getPlayer().getPoints(), 260, (float) 100);
                 infoFont.draw(batch, "PRESS ENTER TO START OVER", 170, (float) 50);
                 batch.end();
                 this.lastState = GAMEOVER;

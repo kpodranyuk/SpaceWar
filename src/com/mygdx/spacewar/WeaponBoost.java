@@ -21,7 +21,7 @@ public class WeaponBoost extends Bonus{
     
     @Override
     public void activate(Ship shipToTakeBonus) {
-        oldShipWeaponsCount = shipToTakeBonus.getActiveWeaponsCount();
+        oldShipWeaponsCount = shipToTakeBonus.getDefaultWeaponsCount();
         shipToTakeBonus.setActiveWeaponsCount(activeWeapons);
     }
     
