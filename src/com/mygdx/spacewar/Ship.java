@@ -61,6 +61,14 @@ public abstract class Ship {
     }
     
     /**
+     * Получить размер максимально возможного здоровья у корабля
+     * @return
+     */
+    public int getMaxHealth(){
+        return this.maxHealth;
+    }
+    
+    /**
      * Получить скорость корабля
      * @return Скорость корабля
      */
