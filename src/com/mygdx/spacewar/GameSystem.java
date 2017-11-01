@@ -38,6 +38,7 @@ public class GameSystem {
     private int maxBonusShoots = 6;                     /// Максимальная временная длина бонуса
     private int shootsSinceBonus;
     private int currentWeaponBonusId;
+    private int enemiesToEndGame;
     
     /**
      * Уровень игры, отвечающий за разнообразие создаваемых врагов
@@ -66,6 +67,7 @@ public class GameSystem {
         healthKitImage = null;
         shootsSinceBonus=0;
         currentWeaponBonusId=0;
+        enemiesToEndGame = 500;
         
         // Создаем игрока
         createPlayer();
@@ -572,5 +574,16 @@ public class GameSystem {
             ((WeaponBoost)bonus).deactivate(player);
             shootsSinceBonus=0;
         }
+    }
+    
+    public int howMuchEnemiesToWin(int enemiesKilled){
+        if(enemiesKilled<0)
+            enemiesKilled=0;
+        this.enemiesToEndGame-=enemiesKilled;
+        return this.enemiesToEndGame;
+    }
+    
+    public boolean isGameFinished(){
+        return this.enemiesToEndGame<=0;
     }
 }
