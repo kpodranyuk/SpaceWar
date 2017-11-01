@@ -10,10 +10,11 @@ package com.mygdx.spacewar;
  * @author Katie
  */
 public abstract class Ship {
-    protected int currentHealth;       /// Здоровье корабля
-    private float speed;        /// Скорость корабля
-    private ObjectSprite view;  /// Отображение корабля
-    private Weapon weapon;      /// Оружие корабля
+    protected final int maxHealth;      /// Максимальное здоровье корабля
+    protected int currentHealth;        /// Здоровье корабля
+    private float speed;                /// Скорость корабля
+    private ObjectSprite view;          /// Отображение корабля
+    private Weapon weapon;              /// Оружие корабля
     
     /**
      * Конструктор корабля
@@ -26,6 +27,7 @@ public abstract class Ship {
         if(health<=0 || speed <=0.0 || view == null || weapon == null)
             throw new Error("Can't create ship");
         this.currentHealth = health;
+        this.maxHealth = health;
         this.speed = speed;
         this.view = view;
         this.weapon = weapon;
