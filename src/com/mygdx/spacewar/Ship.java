@@ -75,4 +75,14 @@ public abstract class Ship {
             throw new Error("Ship can't take negative damage");
         this.health-=damage;
     }
+    
+    /**
+     * Получить здоровье в виде таблетки
+     * @param healthCount Количество здоровья, на которое увеличится текущее
+     */
+    public void takePill(int healthCount) {
+        if (healthCount<0)
+            throw new Error("Ship can't take negative health");
+        this.health+=healthCount;
+    }
 }
