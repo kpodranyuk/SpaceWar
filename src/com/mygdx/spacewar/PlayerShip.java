@@ -5,6 +5,8 @@
  */
 package com.mygdx.spacewar;
 
+import com.badlogic.gdx.utils.Array;
+
 /**
  * Пользовательский корабль
  * @author Katie
@@ -19,17 +21,9 @@ public class PlayerShip extends Ship {
      * @param view Отображение корабля
      * @param weapon Оружие корабля
      */
-    public PlayerShip(int health, float speed, ObjectSprite view, Weapon weapon) {
-        super(health, speed, view, weapon);
+    public PlayerShip(int health, float speed, ObjectSprite view, Array<Weapon> weapons) {
+        super(health, speed, view, weapons);
         points = 0;
-    }
-
-    /**
-     * Совершить выстрел
-     * @return Снаряд, которым выстрелили
-     */
-    public Missile shoot(){
-        return this.getMissile();
     }
     
     public int getPoints(){

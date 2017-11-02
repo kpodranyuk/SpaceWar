@@ -102,8 +102,10 @@ public class GameSystem {
         StraightTrajectory playersTrajectory = new StraightTrajectory((float) 250.0, false);
         // Создаем снаряд игрока
         Missile playersMissile = new Missile(1, (float) 250.0, playersTrajectory, playersMissileView);
+        Array<Weapon> wps = new Array<Weapon>();
+        wps.add(new Weapon(playersMissile));
         // Создаем объект игрока
-        player = new PlayerShip(3, (float) 250.0, playersView, new Weapon(playersMissile));
+        player = new PlayerShip(3, (float) 250.0, playersView, wps);
     }
     
     /**
@@ -166,7 +168,10 @@ public class GameSystem {
         // Создаем вражеский снаряд
         Missile enemiesMissile = new Missile(1, (float) 250.0, enemiesTrajectory, enemiesMissileView); 
         // Создаем вражеский корабль
-        EnemyShip enemy = new EnemyShip(1, (float) 200.0, enemiesView, new Weapon(enemiesMissile));
+        Array<Weapon> wps = new Array<Weapon>();
+        wps.add(new Weapon(enemiesMissile));
+        
+        EnemyShip enemy = new EnemyShip(1, (float) 200.0, enemiesView, wps);
         
         // Возвращаем созданного врага
         return enemy;
@@ -189,7 +194,9 @@ public class GameSystem {
         // Создаем спрайт врага
         enemiesView = new ObjectSprite(enemiesImg, 40, 52, controlIdCounter());
         // Создаем врага с учетом того, что у данного типа нет снарядов и большое хп
-        EnemyShip enemy = new EnemyShip(6, (float) 170.0, enemiesView, new Weapon(null));
+        Array<Weapon> wps = new Array<Weapon>();
+        wps.add(new Weapon(null));
+        EnemyShip enemy = new EnemyShip(6, (float) 170.0, enemiesView, wps);
         // Возвращаем созданного врага
         return enemy;
     }
@@ -219,13 +226,30 @@ public class GameSystem {
             enemiesMissilesSprites.add(enemiesMissileImg);
         }
         enemiesMissileView = new ObjectSprite(enemiesMissileImg, 22, 11, controlIdCounter());
+        Array<Weapon> wps = new Array<Weapon>();
+        // Снаряд данного врага стреляет по дуге, поэтому у него дуговая траектория
+        ArcTrajectory enemiesTrajectory = new ArcTrajectory((float) 330.0, true, true);
+        // Создаем снаряд врага
+        Missile enemiesMissile = new Missile(2, (float) 330.0, enemiesTrajectory, enemiesMissileView); 
+        Weapon wp = new Weapon(enemiesMissile);
+        wps.add(wp);
         
         // Снаряд данного врага стреляет по дуге, поэтому у него дуговая траектория
-        ArcTrajectory enemiesTrajectory = new ArcTrajectory((float) 330.0, true);
+        StraightTrajectory enemiesSTrajectory = new StraightTrajectory((float) 330.0, true);
         // Создаем снаряд врага
-        Missile enemiesMissile = new Missile(2, (float) 330.0, enemiesTrajectory, enemiesMissileView);        
+        enemiesMissile = new Missile(2, (float) 330.0, enemiesSTrajectory, enemiesMissileView); 
+        wp = new Weapon(enemiesMissile);
+        wps.add(wp);
+        
+        // Снаряд данного врага стреляет по дуге, поэтому у него дуговая траектория
+        enemiesTrajectory = new ArcTrajectory((float) 330.0, true, false);
+        // Создаем снаряд врага
+        enemiesMissile = new Missile(2, (float) 330.0, enemiesTrajectory, enemiesMissileView); 
+        wp = new Weapon(enemiesMissile);
+        wps.add(wp);        
+        
         // Создаем врага
-        EnemyShip enemy = new EnemyShip(2, (float) 300.0, enemiesView, new Weapon(enemiesMissile));
+        EnemyShip enemy = new EnemyShip(2, (float) 300.0, enemiesView, wps);
         // Возвращаем созданного врага
         return enemy;
     }
@@ -237,29 +261,33 @@ public class GameSystem {
      * @return Отображение снаряда
      */
     public Array<ObjectSprite> makeShoot(ObjectType type, int objectId){
+        Array<Missile> ms = new Array<Missile>();
+        Array<ObjectSprite> msView = new Array<ObjectSprite>();
         if (type == USRSHIP){
-            Array<ObjectSprite> ms = new Array<ObjectSprite>();
-            if(this.player.getActiveWeaponsCount()>1)
+            if(this.player.getActiveWeaponsCount()>this.player.getDefaultWeaponsCount())
                 shootsSinceBonus++;
             controlBonusTime(currentWeaponBonusId,shootsSinceBonus);
-            for(int i=0; i<this.player.getActiveWeaponsCount(); i++){
-                ObjectSprite newMissileView = new ObjectSprite (this.player.getMissile().getView(), controlIdCounter());
-                Missile newMissile = new Missile (this.player.getMissile(), newMissileView);
-                this.playersMissiles.add(newMissile);
-                ms.add(newMissileView);
+            ms = this.player.shoot();
+            Missile bufM;
+            for(Missile m: ms){
+                ObjectSprite newMissileView = new ObjectSprite (m.getView(), controlIdCounter());
+                bufM = new Missile(m, newMissileView);
+                this.playersMissiles.add(bufM);
+                msView.add(newMissileView);
             }            
-            return ms;
+            return msView;
         }
         if (type == ENMSHIP || type == ENMSHIPFAST){
             Ship currentEnemy = getActiveEnemy(type, objectId);
-            Array<ObjectSprite> ms = new Array<ObjectSprite>();
-            for(int i=0; i<currentEnemy.getActiveWeaponsCount(); i++){                
-                ObjectSprite newMissileView = new ObjectSprite (currentEnemy.getMissile().getView(), controlIdCounter());
-                Missile newMissile = new Missile (currentEnemy.getMissile(), newMissileView);
-                this.enemiesMissiles.add(newMissile);
-                ms.add(newMissileView);
+            ms = currentEnemy.shoot();
+            Missile bufM;
+            for(Missile m: ms){                
+                ObjectSprite newMissileView = new ObjectSprite (m.getView(), controlIdCounter());
+                bufM = new Missile(m, newMissileView);
+                this.enemiesMissiles.add(bufM);
+                msView.add(newMissileView);
             }
-            return ms;
+            return new Array<ObjectSprite>(msView);
         }            
         return null;
     }
@@ -455,15 +483,15 @@ public class GameSystem {
      */
     private void controlLevel(int enemiesKilled){
         // Если 10<убитых врагов<=40, то игра на среднем уровне
-        if (enemiesKilled>10 && enemiesKilled<=40) {
+        if (enemiesKilled>5 && enemiesKilled<=25) {
             currentLevel=Level.MEDIUM;
         }
         // Если 40<убитых врагов<=80, то игра на сложном уровне
-        else if (enemiesKilled>40 && enemiesKilled<=80) {
+        else if (enemiesKilled>25 && enemiesKilled<=40) {
             currentLevel=Level.HARD;
         }
         // Если убитых врагов>80, то игра на суперсложном уровне
-        else if (enemiesKilled>80) {
+        else if (enemiesKilled>40) {
             currentLevel=Level.ULTRAHARD;
         }
     }

@@ -13,13 +13,15 @@ import com.badlogic.gdx.math.Rectangle;
  */
 public class ArcTrajectory extends Trajectory {
 
+    private boolean upDirected;
     /**
      * Конструктор дуговой траектории
      * @param speed Скорость движения
      * @param leftDirected Является ли траектория направленной влево
      */
-    public ArcTrajectory(float speed, boolean leftDirected) {
+    public ArcTrajectory(float speed, boolean leftDirected, boolean upDirected) {
         super(speed, leftDirected);
+        this.upDirected = upDirected;
     }
 
     /**
@@ -35,7 +37,10 @@ public class ArcTrajectory extends Trajectory {
         else
             cuPos.x += this.getSpeed() * deltaTime;
         deltaX=Math.abs(800-cuPos.x);
-        cuPos.y -= (float) (deltaX/6) * deltaTime;//this.getSpeed() * deltaTime;
+        if(this.upDirected)
+            cuPos.y += (float) (deltaX/6) * deltaTime;//this.getSpeed() * deltaTime;
+        else
+            cuPos.y -= (float) (deltaX/6) * deltaTime;//this.getSpeed() * deltaTime;
         return cuPos;
     }
     

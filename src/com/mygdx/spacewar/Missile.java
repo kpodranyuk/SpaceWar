@@ -54,6 +54,14 @@ public class Missile {
     }
     
     /**
+     * Получить отображение снаряда
+     * @return Отображение снаряда
+     */
+    public void setView(ObjectSprite v){
+        this.missileView = v;
+    }
+    
+    /**
      * Получить информацию об уроне снаряда
      * @return Урон снаряда
      */

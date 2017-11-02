@@ -5,6 +5,8 @@
  */
 package com.mygdx.spacewar;
 
+import com.badlogic.gdx.utils.Array;
+
 /**
  * Вражеский корабль
  * @author Katie
@@ -18,8 +20,8 @@ public class EnemyShip extends Ship{
      * @param view Отображение корабля
      * @param weapon Оружие корабля
      */
-    public EnemyShip(int health, float speed, ObjectSprite view, Weapon weapon) {
-        super(health, speed, view, weapon);
+    public EnemyShip(int health, float speed, ObjectSprite view, Array<Weapon> weapons) {
+        super(health, speed, view, weapons);
     }
     
 }

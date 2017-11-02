@@ -45,7 +45,7 @@ public class SpaceWar extends ApplicationAdapter {
     private Array<ObjectSprite> playersMissiles;  /// Массив снарядов героя
     private Array<ObjectSprite> bonuses;  /// Массив бонусов
     
-    private static long respawnTime = 2200;
+    private static long respawnTime = 1800;
     private long lastDropTime;          /// Время последнего выпадения врага
     
     private static final long healthBonusDeltaTime = 6000;
@@ -56,6 +56,9 @@ public class SpaceWar extends ApplicationAdapter {
     
     private static final long shootDeltaTime = 350;
     private long lastShootTime;
+    
+    private static final long enemyShootDeltaTime = 600;
+    private long enemyLastShootTime;
     
     private static final long spacePushedDeltaTime = 150;
     private long spacePushedTime;
@@ -309,6 +312,7 @@ public class SpaceWar extends ApplicationAdapter {
                 missile.rect.y = newEnemy.rect.y + missile.rect.height;
                 enemysMissiles.add(missile);
             }
+            enemyLastShootTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
         }
     }
     
@@ -436,7 +440,7 @@ public class SpaceWar extends ApplicationAdapter {
             boolean wasBreak = false;
             ObjectSprite curM = iterPM.next();
             // Направляем его на "правый вылет"
-            curM.rect = system.getPlayer().getMissile().getTrajectory().calculatePosition(curM.rect, false, Gdx.graphics.getDeltaTime());
+            curM.rect = system.getActiveMissile(curM.getObjType(),curM.getId()).getTrajectory().calculatePosition(curM.rect, false, Gdx.graphics.getDeltaTime());
             // Если снаряд вылетел за пределы поля - удаляем из массива
             if(curM.rect.x + curM.rect.width >800){
                 system.objectLeftField(curM.getObjType(), curM.getId());

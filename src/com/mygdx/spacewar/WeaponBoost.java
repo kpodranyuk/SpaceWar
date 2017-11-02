@@ -5,6 +5,8 @@
  */
 package com.mygdx.spacewar;
 
+import com.badlogic.gdx.utils.Array;
+
 /**
  *
  * @author Katie
@@ -21,11 +23,15 @@ public class WeaponBoost extends Bonus{
     
     @Override
     public void activate(Ship shipToTakeBonus) {
+        Missile wps = shipToTakeBonus.getMissile(0);
+        
         oldShipWeaponsCount = shipToTakeBonus.getDefaultWeaponsCount();
-        shipToTakeBonus.setActiveWeaponsCount(activeWeapons);
+        shipToTakeBonus.addActiveWeapon(new Weapon(wps));
+        shipToTakeBonus.addActiveWeapon(new Weapon(wps));
     }
     
     public void deactivate(Ship shipToTakeBonus) {
-        shipToTakeBonus.setActiveWeaponsCount(oldShipWeaponsCount);
+        shipToTakeBonus.deleteLastWeapons(activeWeapons-oldShipWeaponsCount);
+        //shipToTakeBonus.setActiveWeaponsCount(oldShipWeaponsCount);
     }
 }

@@ -5,6 +5,8 @@
  */
 package com.mygdx.spacewar;
 
+import com.badlogic.gdx.utils.Array;
+
 /**
  * Корабль
  * @author Katie
@@ -14,7 +16,7 @@ public abstract class Ship {
     protected int currentHealth;        /// Здоровье корабля
     private float speed;                /// Скорость корабля
     private ObjectSprite view;          /// Отображение корабля
-    private Weapon weapon;              /// Оружие корабля
+    private Array<Weapon> weapons;              /// Оружие корабля
     private int weaponsCount;           /// Количество активных оружий у корабля текущее
     private final int defaultWeaponsCount;    /// Количество активных оружий у корабля по умолчанию
     
@@ -25,14 +27,14 @@ public abstract class Ship {
      * @param view Отображение корабля
      * @param weapon Оружие корабля
      */
-    public Ship(int health, float speed, ObjectSprite view, Weapon weapon){
-        if(health<=0 || speed <=0.0 || view == null || weapon == null)
+    public Ship(int health, float speed, ObjectSprite view, Array<Weapon> weapons){
+        if(health<=0 || speed <=0.0 || view == null || weapons == null)
             throw new Error("Can't create ship");
         this.currentHealth = health;
         this.maxHealth = health;
         this.speed = speed;
         this.view = view;
-        this.weapon = weapon;
+        this.weapons = weapons;
         this.weaponsCount = 1;
         this.defaultWeaponsCount = 1;
     }
@@ -50,8 +52,8 @@ public abstract class Ship {
      * Получить снаряд корабля
      * @return Снаряд корабля
      */
-    public Missile getMissile(){
-        return this.weapon.getMissile();
+    public Missile getMissile(int weaponIndex){
+        return this.weapons.get(weaponIndex).getMissile();
     }
     
     /**
@@ -99,20 +101,40 @@ public abstract class Ship {
     }
     
     public int getActiveWeaponsCount(){
-        return weaponsCount;
+        return this.weapons.size;
     }
     
     /**
      * Установить количество активных орудий корабля
      * @param weaponsCount Количество активных орудий корабля для установки
      */
-    public void setActiveWeaponsCount(int weaponsCount){
+    public void addActiveWeapon(Weapon wp){
         if (weaponsCount<0)
             throw new Error("Ship can't take negative weapons сount");
-        this.weaponsCount=weaponsCount;
+        this.weapons.add(wp);
+        this.weaponsCount++;
+    }
+    
+    public void deleteLastWeapons(int count){
+        while(count>0){
+            this.weapons.removeIndex(this.weapons.size - 1);
+            count--;
+        }
     }
     
     public int getDefaultWeaponsCount(){
         return this.defaultWeaponsCount;
+    }
+    
+    /**
+     * Совершить выстрел
+     * @return Снаряд, которым выстрелили
+     */
+    public Array<Missile> shoot(){
+        Array<Missile> ms = new Array<Missile>();
+        for(Weapon wp: this.weapons){
+            ms.add(wp.getMissile());
+        }
+        return ms;
     }
 }
