@@ -23,10 +23,19 @@ public class ObjectSprite {
      * @param id Идентификатор объекта
      */
     public ObjectSprite(ObjectImage view, int width, int height, int id){
+        this(view, width, height);
+        this.setId(id);
+    }
+    
+    /**
+     * Конструктор спрайта объекта
+     * @param view Отображение объекта
+     */
+    public ObjectSprite(ObjectImage view, int width, int height){
         if (view == null || width <= 0 || height <= 0)
             throw new Error("Can't create sprite of object");
         this.view = view;
-        this.id = id;
+        this.id = -1;
         this.rect = new Rectangle();
         this.rect.width = width;
         this.rect.height = height;
@@ -85,5 +94,13 @@ public class ObjectSprite {
      */
     public int getId(){
         return this.id;
+    }
+    
+    public void setId(int newId){
+        if(newId>-1){
+            this.id = newId;
+        }
+        else
+            throw new Error("Can't set ObjectSprite id");
     }
 }
