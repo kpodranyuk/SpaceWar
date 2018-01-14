@@ -34,7 +34,7 @@ public class GameSystem {
     private Array<ObjectImage> enemiesMissilesSprites;  /// Спрайты снарядов врагов
     private ObjectImage healthKitImage;                 /// Изображение бонуса здоровья
     private ObjectImage weaponBoostImage;               /// Изображение бонуса оружия
-    private int curId;                                  /// Текущий идентификатор
+    public static int curId = -1;                       /// Текущий идентификатор
     private int maxBonusShoots = 6;                     /// Максимальная временная длина бонуса
     private int shootsSinceBonus;
     private int currentWeaponBonusId;
@@ -54,7 +54,6 @@ public class GameSystem {
      */
     public GameSystem(){
         // Инициализируем поля
-        curId = -1;
         enemies = new Array();
         playersMissiles = new Array();
         enemiesMissiles = new Array();
@@ -76,14 +75,11 @@ public class GameSystem {
     /**
      * Контролировать численность идентификатора игры
      */
-    private int controlIdCounter(){
-        // Увеличиваем идентификатор
-        this.curId+=1;
+    private void controlIdCounter(){
         // Если достигнут предел, обнуляем счетчик
         if (this.curId>1500){
-            this.curId = 0;
+            this.curId = -1;
         }
-        return this.curId;
     }
     
     /**
@@ -92,11 +88,11 @@ public class GameSystem {
     private void createPlayer(){
         // Создаем изображение и спрайт корабля игрока
         ObjectImage playersImg = new ObjectImage("ship.png", USRSHIP);
-        ObjectSprite playersView = new ObjectSprite(playersImg, 34, 37, controlIdCounter());
+        ObjectSprite playersView = new ObjectSprite(playersImg, 34, 37, ++(GameSystem.curId));
         
         // Создаем изображение и спрайт снаряда игрока
         ObjectImage playersMissileImg = new ObjectImage("fire/greenpng.png", USRMISSILE);
-        ObjectSprite playersMissileView = new ObjectSprite(playersMissileImg, 22, 11, controlIdCounter());
+        ObjectSprite playersMissileView = new ObjectSprite(playersMissileImg, 22, 11, ++(GameSystem.curId));
 
         // Снаряд игрока летит по прямой траектории
         StraightTrajectory playersTrajectory = new StraightTrajectory((float) 250.0, false);
@@ -114,6 +110,8 @@ public class GameSystem {
      * @return Отображение врага
      */
     public ObjectSprite generateEnemy(int enemiesKilled){
+        // Контроллируем идентификатор
+        controlIdCounter();
         // В зависимости от убитых врагов вычисляем текущий уровень игры
         controlLevel(enemiesKilled);
         // Определяем тип создаваемого игрока, основываясь на сложности игры
@@ -152,7 +150,7 @@ public class GameSystem {
             enemiesSprites.add(enemiesImg);
         }
         // Создаем спрайт врага
-        enemiesView = new ObjectSprite(enemiesImg, 29, 38, controlIdCounter());
+        enemiesView = new ObjectSprite(enemiesImg, 29, 38, ++(GameSystem.curId));
         
         // Повторяем то же самое с снарядом врага
         ObjectSprite enemiesMissileView = null;
@@ -161,7 +159,7 @@ public class GameSystem {
             enemiesMissileImg = new ObjectImage("fire/redpng.png", ENMMISSILE);
             enemiesMissilesSprites.add(enemiesMissileImg);
         }
-        enemiesMissileView = new ObjectSprite(enemiesMissileImg, 22, 11, controlIdCounter());
+        enemiesMissileView = new ObjectSprite(enemiesMissileImg, 22, 11, ++(GameSystem.curId));
         
         // Снаряд легкого врага летит по прямой траектории
         StraightTrajectory enemiesTrajectory = new StraightTrajectory((float) 250.0, true);
@@ -192,7 +190,7 @@ public class GameSystem {
             enemiesSprites.add(enemiesImg);
         }
         // Создаем спрайт врага
-        enemiesView = new ObjectSprite(enemiesImg, 40, 52, controlIdCounter());
+        enemiesView = new ObjectSprite(enemiesImg, 40, 52, ++(GameSystem.curId));
         // Создаем врага с учетом того, что у данного типа нет снарядов и большое хп
         Array<Weapon> wps = new Array<Weapon>();
         wps.add(new Weapon(null));
@@ -216,7 +214,7 @@ public class GameSystem {
             enemiesSprites.add(enemiesImg);
         }
         // Создаем спрайт врага
-        enemiesView = new ObjectSprite(enemiesImg, 19, 31, controlIdCounter());
+        enemiesView = new ObjectSprite(enemiesImg, 19, 31, ++(GameSystem.curId));
         
         // Повторяем то же самое с снарядом врага
         ObjectSprite enemiesMissileView = null;
@@ -225,7 +223,7 @@ public class GameSystem {
             enemiesMissileImg = new ObjectImage("fire/redpng.png", ENMMISSILE);
             enemiesMissilesSprites.add(enemiesMissileImg);
         }
-        enemiesMissileView = new ObjectSprite(enemiesMissileImg, 22, 11, controlIdCounter());
+        enemiesMissileView = new ObjectSprite(enemiesMissileImg, 22, 11, ++(GameSystem.curId));
         Array<Weapon> wps = new Array<Weapon>();
         // Снаряд данного врага стреляет по дуге, поэтому у него дуговая траектория
         ArcTrajectory enemiesTrajectory = new ArcTrajectory((float) 330.0, true, true);
@@ -261,6 +259,8 @@ public class GameSystem {
      * @return Отображение снаряда
      */
     public Array<ObjectSprite> makeShoot(ObjectType type, int objectId){
+        // Контроллируем идентификатор
+        controlIdCounter();
         Array<Missile> ms = new Array<Missile>();
         Array<ObjectSprite> msView = new Array<ObjectSprite>();
         if (type == USRSHIP){
@@ -270,7 +270,7 @@ public class GameSystem {
             ms = this.player.shoot();
             Missile bufM;
             for(Missile m: ms){
-                ObjectSprite newMissileView = new ObjectSprite (m.getView(), controlIdCounter());
+                ObjectSprite newMissileView = new ObjectSprite (m.getView(), ++(GameSystem.curId));
                 bufM = new Missile(m, newMissileView);
                 this.playersMissiles.add(bufM);
                 msView.add(newMissileView);
@@ -282,7 +282,7 @@ public class GameSystem {
             ms = currentEnemy.shoot();
             Missile bufM;
             for(Missile m: ms){                
-                ObjectSprite newMissileView = new ObjectSprite (m.getView(), controlIdCounter());
+                ObjectSprite newMissileView = new ObjectSprite (m.getView(), ++(GameSystem.curId));
                 bufM = new Missile(m, newMissileView);
                 this.enemiesMissiles.add(bufM);
                 msView.add(newMissileView);
@@ -550,7 +550,7 @@ public class GameSystem {
             if (healthKitImage == null){
                 healthKitImage = new ObjectImage("firstaid_kit.png", GAMEBONUS);
             }
-            ObjectSprite kitSprite = new ObjectSprite(healthKitImage, 15, 15, controlIdCounter());
+            ObjectSprite kitSprite = new ObjectSprite(healthKitImage, 15, 15, ++(GameSystem.curId));
             StraightTrajectory traj = new StraightTrajectory((float) 300.0, true);
             HealthKit kit = new HealthKit(HEALTHKIT, kitSprite, traj);
             bonuses.add(kit);
@@ -566,7 +566,7 @@ public class GameSystem {
             if (weaponBoostImage == null){
                 weaponBoostImage = new ObjectImage("super_missile.png", GAMEBONUS);
             }
-            ObjectSprite wbSprite = new ObjectSprite(weaponBoostImage, 15, 15, controlIdCounter());
+            ObjectSprite wbSprite = new ObjectSprite(weaponBoostImage, 15, 15, ++(GameSystem.curId));
             StraightTrajectory traj = new StraightTrajectory((float) 300.0, true);
             WeaponBoost wb = new WeaponBoost(WEAPONBOOST, wbSprite, traj);
             bonuses.add(wb);
