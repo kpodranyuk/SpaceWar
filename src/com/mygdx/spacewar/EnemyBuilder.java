@@ -48,8 +48,8 @@ public class EnemyBuilder {
             return generateEasyEnemies(1);
         }
         // Иначе если второй тип, то создаем врага с большим хп
-        if(enemyIndex==2){
-            return generateHealthyEnemies(1);//generateHealthyEnemy();
+        if(enemyIndex==2 || enemyIndex==4){
+            return generateHealthyEnemies(1, gameLevel);//generateHealthyEnemy();
         }
         // Иначе если третий тип, то создаем врага, стреляющего по дуге
         if(enemyIndex==3){
@@ -95,7 +95,7 @@ public class EnemyBuilder {
      * @param count количество врагов для генерации
      * @return Враги
      */
-    private Array<EnemyShip> generateHealthyEnemies(int count){
+    private Array<EnemyShip> generateHealthyEnemies(int count, int gameLevel){
         if (count<=0)
             return null;
         Array<EnemyShip> enms = new Array();
@@ -109,8 +109,13 @@ public class EnemyBuilder {
             // Создаем врага с учетом того, что у данного типа нет снарядов и большое хп
             Array<Weapon> wps = new Array<Weapon>();
             wps.add(new Weapon(null));
-            StraightTrajectory enemiesTrajectory = new StraightTrajectory((float) 170.0, true);
-            EnemyShip enemy = new EnemyShip(6, (float) 170.0, enemiesView, wps, enemiesTrajectory);
+            EnemyShip enemy = null;
+            if(gameLevel>3){
+                enemy = new EnemyShip(6, (float) 170.0, enemiesView, wps, new CosTrajectory((float) 170.0, true));
+            }
+            else{
+                enemy = new EnemyShip(6, (float) 170.0, enemiesView, wps, new StraightTrajectory((float) 170.0, true));
+            }            
             enms.add(enemy);
         }
         // Возвращаем созданного врага

@@ -372,8 +372,11 @@ public class GameSystem {
             return 2;
         }
         // Иначе если текущий уровень сложнй или ультрасложный, вернуть 3
-        else if (currentLevel==Level.HARD || currentLevel==Level.ULTRAHARD) {
+        else if (currentLevel==Level.HARD) {
             return 3;
+        }
+        else if(currentLevel==Level.ULTRAHARD){
+            return 4;
         }
         // Вернуть 1
         return 1;
