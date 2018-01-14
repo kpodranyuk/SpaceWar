@@ -13,15 +13,26 @@ import com.badlogic.gdx.utils.Array;
  */
 public class EnemyShip extends Ship{
     
+    private Trajectory trajectory;      /// Траектория
+    
     /**
      * Конструктор вражеского корабля
      * @param health Здоровье корабля
      * @param speed Скорость корабля
      * @param view Отображение корабля
-     * @param weapon Оружие корабля
+     * @param weapons Оружие корабля
      */
-    public EnemyShip(int health, float speed, ObjectSprite view, Array<Weapon> weapons) {
+    public EnemyShip(int health, float speed, ObjectSprite view, Array<Weapon> weapons, Trajectory trajectory) {
         super(health, speed, view, weapons);
+        if(trajectory == null){
+            throw new Error("Can't create enemy without trajectory");
+        }
+        this.trajectory = trajectory;
+    }
+    
+    
+    public Trajectory getTrajectory(){
+        return this.trajectory;
     }
     
 }

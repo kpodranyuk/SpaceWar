@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
 import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMSHIPHEALTHY;
@@ -355,7 +356,7 @@ public class SpaceWar extends ApplicationAdapter {
         while(iter.hasNext()) {
             ObjectSprite curEnemy = iter.next();
             // Направляем его на "левый вылет"
-            curEnemy.rect.x -= system.getActiveEnemy(curEnemy.getObjType(), curEnemy.getId()).getSpeed() * Gdx.graphics.getDeltaTime();
+            curEnemy.rect = system.getActiveEnemy(curEnemy.getObjType(), curEnemy.getId()).getTrajectory().calculatePosition(curEnemy.rect, true, Gdx.graphics.getDeltaTime());
             // Если корабль вылетел за пределы поля - удаляем из массива
             if(curEnemy.rect.x + curEnemy.rect.width < 0) {
                 system.objectLeftField(curEnemy.getObjType(), curEnemy.getId());

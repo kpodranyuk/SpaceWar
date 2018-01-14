@@ -81,8 +81,9 @@ public class EnemyBuilder {
             Array<Weapon> wps = new Array<Weapon>();
             for (Missile m: enemyMissiles){
                 wps.add(new Weapon(m));
-            }        
-            EnemyShip enemy = new EnemyShip(1, (float) 200.0, enemiesView, wps);
+            }       
+            StraightTrajectory enemiesTrajectory = new StraightTrajectory((float) 200.0, true);
+            EnemyShip enemy = new EnemyShip(1, (float) 200.0, enemiesView, wps, enemiesTrajectory);
             enms.add(enemy);
         }
         // Возвращаем созданных врагов
@@ -108,7 +109,8 @@ public class EnemyBuilder {
             // Создаем врага с учетом того, что у данного типа нет снарядов и большое хп
             Array<Weapon> wps = new Array<Weapon>();
             wps.add(new Weapon(null));
-            EnemyShip enemy = new EnemyShip(6, (float) 170.0, enemiesView, wps);
+            StraightTrajectory enemiesTrajectory = new StraightTrajectory((float) 170.0, true);
+            EnemyShip enemy = new EnemyShip(6, (float) 170.0, enemiesView, wps, enemiesTrajectory);
             enms.add(enemy);
         }
         // Возвращаем созданного врага
@@ -137,7 +139,8 @@ public class EnemyBuilder {
                 wps.add(new Weapon(em));
             }        
             // Создаем врага
-            EnemyShip enemy = new EnemyShip(2, (float) 300.0, enemiesView, wps);
+            StraightTrajectory enemiesTrajectory = new StraightTrajectory((float) 300.0, true);
+            EnemyShip enemy = new EnemyShip(2, (float) 300.0, enemiesView, wps, enemiesTrajectory);
             enms.add(enemy);
         }
         // Возвращаем созданного врага

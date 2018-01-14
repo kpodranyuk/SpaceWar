@@ -199,7 +199,7 @@ public class GameSystem {
      * @param enemyId Идентификатор врага
      * @return Враг
      */
-    public Ship getActiveEnemy(ObjectType type, int enemyId){
+    public EnemyShip getActiveEnemy(ObjectType type, int enemyId){
         // Проверяем на корректность идентификатор
         if (enemyId<0)
             return null;
@@ -210,7 +210,7 @@ public class GameSystem {
             for (Ship enemy: this.enemies){
                 // Если идентификатор текущего врага совпадает с требуемым, возвращаем текущего врага
                 if (enemy.getView().getId() == enemyId)
-                    return enemy;
+                    return ((EnemyShip)enemy);
             }
         }
         // Возвращаем null, так как враг так и не нашелся
