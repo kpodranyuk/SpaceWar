@@ -11,10 +11,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
-import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMSHIP;
 import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMSHIPHEALTHY;
 import static com.mygdx.spacewar.SpaceWar.GAMESTATE.GAMEOVER;
 import static com.mygdx.spacewar.SpaceWar.GAMESTATE.PAUSED;
@@ -246,14 +244,6 @@ public class SpaceWar extends ApplicationAdapter {
         // Создаем первый корабль
         spawnEnemy();
 
-        // Загрузка звукового эффекта падающей капли и фоновой "музыки" дождя 
-        //dropSound = Gdx.audio.newSound(Gdx.files.internal("drop.wav"));
-        //rainMusic = Gdx.audio.newMusic(Gdx.files.internal("rain.mp3"));
-
-        // Сразу же воспроизводиться музыка для фона
-        //rainMusic.setLooping(true);
-        //rainMusic.play();
-
         // Выделяем память под batch
         batch = new SpriteBatch();
         state = PLAY;
@@ -296,24 +286,26 @@ public class SpaceWar extends ApplicationAdapter {
     
     private void spawnEnemy() {
         // Создаем нового врага
-        ObjectSprite newEnemy = system.generateEnemy(this.enemiesDestroyed);
-        // Задаем ему начальную позицию
-        newEnemy.rect.x = 800;//
-        newEnemy.rect.y = MathUtils.random(0, 450-newEnemy.rect.height - 15);//480;
-        // Добавляем его в массив
-        enemies.add(newEnemy);
-        // Изменяем время "выпада" врага
-        lastDropTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
-        if (newEnemy.getObjType()!=ENMSHIPHEALTHY){
-            Array<ObjectSprite> missiles = new Array<ObjectSprite>();
-            missiles = system.makeShoot(newEnemy.getObjType(), newEnemy.getId());
-            for (ObjectSprite missile: missiles){
-                missile.rect.x = 800 - newEnemy.rect.width;
-                missile.rect.y = newEnemy.rect.y + missile.rect.height;
-                enemysMissiles.add(missile);
+        Array<ObjectSprite> newEnemies = system.generateEnemies(this.enemiesDestroyed);
+        for(ObjectSprite newEnemy: newEnemies){
+            // Задаем ему начальную позицию
+            newEnemy.rect.x = 800;//
+            newEnemy.rect.y = MathUtils.random(0, 450-newEnemy.rect.height - 15);//480;
+            // Добавляем его в массив
+            enemies.add(newEnemy);
+            // Изменяем время "выпада" врага
+            lastDropTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
+            if (newEnemy.getObjType()!=ENMSHIPHEALTHY){
+                Array<ObjectSprite> missiles = new Array<ObjectSprite>();
+                missiles = system.makeShoot(newEnemy.getObjType(), newEnemy.getId());
+                for (ObjectSprite missile: missiles){
+                    missile.rect.x = 800 - newEnemy.rect.width;
+                    missile.rect.y = newEnemy.rect.y + missile.rect.height;
+                    enemysMissiles.add(missile);
+                }
+                enemyLastShootTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
             }
-            enemyLastShootTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
-        }
+        }        
     }
     
     private void shoot() {
@@ -380,17 +372,6 @@ public class SpaceWar extends ApplicationAdapter {
                 this.state = GAMEOVER;
                 //continue;
             }
-            /*for(ObjectSprite playerM: this.playersMissiles) {
-                if(curEnemy.rect.overlaps(playerM.rect)) {
-                    //dropSound.play();
-                    if (system.isKilledShip(curEnemy.getObjType(), curEnemy.getId(), playerM.getObjType(), playerM.getId())){
-                        iter.remove();
-                        this.playersMissiles.removeValue(playerM, true);
-                        this.enemiesDestroyed+=1;
-                        break;
-                    }                                
-                }
-            }*/
         }
     }
     
@@ -423,7 +404,7 @@ public class SpaceWar extends ApplicationAdapter {
             for(ObjectSprite playerM: this.playersMissiles) {
                 if(curM.rect.overlaps(playerM.rect)) {
                     //dropSound.play();
-                    system.missilesCollision(curM.getObjType(), curM.getId(), playerM.getObjType(), playerM.getId());
+                    system.missilesCollision(curM.getObjType(), curM.getId(),playerM.getObjType(), playerM.getId());
                     iterM.remove();
                     this.playersMissiles.removeValue(playerM, true);
                     break;
@@ -462,19 +443,6 @@ public class SpaceWar extends ApplicationAdapter {
                     break;
                 }
             }
-            // Если снаряд не столкнулся с врагом, а столкнулся с другим снарядом
-            /*if(!wasBreak){
-                for(ObjectSprite enemyM: this.enemysMissiles) {
-                    if(curM.rect.overlaps(enemyM.rect)) {
-                        //dropSound.play();
-                        system.missilesCollision(curM.getObjType(), curM.getId(), enemyM.getObjType(), enemyM.getId());
-                        iterPM.remove();
-                        this.enemysMissiles.removeValue(enemyM, true);
-                        break;
-                    }
-                }   
-            }
-            */
         }
     }
     
