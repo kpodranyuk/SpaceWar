@@ -19,7 +19,21 @@ public class EnemyMissileBuilder {
         enemiesMissileSprite = new ObjectImage("fire/redpng.png", ENMMISSILE);
     }
     
-    public Array<Missile> generateEnemyMissile(ObjectImage.ObjectType missileType){
+    public Array<Missile> generateEnemyMissiles(ObjectImage.ObjectType missileType){
+        if(missileType==ENMMISSILE)
+            return geneateDefaultMissile();
         return null;
+    }
+    
+    private Array<Missile> geneateDefaultMissile(){
+        ObjectSprite enemiesMissileView = new ObjectSprite(enemiesMissileSprite, 22, 11, ++(GameSystem.curId));        
+        // Снаряд легкого врага летит по прямой траектории
+        StraightTrajectory enemiesTrajectory = new StraightTrajectory((float) 250.0, true);
+        // Создаем вражеский снаряд
+        Missile enemiesMissile = new Missile(1, (float) 250.0, enemiesTrajectory, enemiesMissileView);
+        
+        Array<Missile> ms = new Array();
+        ms.add(enemiesMissile);
+        return ms;        
     }
 }
