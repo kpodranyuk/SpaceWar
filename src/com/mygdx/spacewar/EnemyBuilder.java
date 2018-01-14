@@ -21,10 +21,12 @@ import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMSHIPHEALTHY;
 public class EnemyBuilder {
     private Array<ObjectImage> enemiesSprites;          /// Спрайты врагов
     private EnemyMissileBuilder missileBuilder;         /// Строитель снарядов
+    private int shipsFromWall;                          /// Количество выпущенных после стены смерти кораблей
     
     public EnemyBuilder (){
         missileBuilder = new EnemyMissileBuilder();
         enemiesSprites = new Array();
+        shipsFromWall = -1;
         
         ObjectImage enemiesImg = null;        
         enemiesImg = new ObjectImage("enemies/enemy1.png", ENMSHIP);
@@ -42,19 +44,31 @@ public class EnemyBuilder {
      */
     public Array<EnemyShip> generateEnemies(int gameLevel){
         // Определяем тип создаваемого игрока, основываясь на сложности игры
-        int enemyIndex = MathUtils.random(1, gameLevel);        
+        int enemyIndex = MathUtils.random(1, gameLevel);  
+        if(gameLevel==4&&shipsFromWall!=-1){
+            shipsFromWall++;
+        }
         // Если первый тип, то создаем легкого врага
         if(enemyIndex==1){
             return generateEasyEnemies(1);
         }
         // Иначе если второй тип, то создаем врага с большим хп
-        if(enemyIndex==2 || enemyIndex==4){
+        if(enemyIndex==2){
             return generateHealthyEnemies(1, gameLevel);//generateHealthyEnemy();
         }
         // Иначе если третий тип, то создаем врага, стреляющего по дуге
         if(enemyIndex==3){
             return generateFastEnemies(1);//generateFastEnemy();
         }            
+        if(enemyIndex==4){
+            if(shipsFromWall==-1 || shipsFromWall>10){
+                shipsFromWall = 0;
+                return generateWallOfDeath();
+            }
+            else {
+                return generateHealthyEnemies(1, gameLevel);
+            }
+        }
         return null;
     }
     
@@ -149,6 +163,16 @@ public class EnemyBuilder {
             enms.add(enemy);
         }
         // Возвращаем созданного врага
+        return enms;
+    }
+    
+    private Array<EnemyShip> generateWallOfDeath(){
+        Array<EnemyShip> enms = new Array();
+        enms.addAll(generateEasyEnemies(2));
+        enms.addAll(generateFastEnemies(1));
+        enms.addAll(generateHealthyEnemies(1,1));
+        enms.addAll(generateFastEnemies(1));
+        enms.addAll(generateEasyEnemies(2));        
         return enms;
     }
     

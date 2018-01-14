@@ -285,13 +285,30 @@ public class SpaceWar extends ApplicationAdapter {
         playersMissiles.clear();  
     }
     
+    private double getMinHeight(Array<ObjectSprite> sprites){
+        double min = 0.0;
+        for(ObjectSprite s: sprites){
+            if(s.rect.height<min){
+                min = s.rect.height;
+            }
+        }
+        return min;
+    }
+    
     private void spawnEnemy() {
         // Создаем нового врага
         Array<ObjectSprite> newEnemies = system.generateEnemies(this.enemiesDestroyed);
+        float step = (320 - (float)getMinHeight(newEnemies) - 15)/(newEnemies.size-1);
+        float startHeight = 320;
         for(ObjectSprite newEnemy: newEnemies){
             // Задаем ему начальную позицию
             newEnemy.rect.x = 800;//
-            newEnemy.rect.y = MathUtils.random(0, 450-newEnemy.rect.height - 15);//480;
+            if(newEnemies.size>1){
+                newEnemy.rect.y = startHeight - step*newEnemies.indexOf(newEnemy, true) + newEnemy.rect.height;
+            }
+            else{
+                newEnemy.rect.y = MathUtils.random(0, 450-newEnemy.rect.height - 15);//480;
+            }            
             // Добавляем его в массив
             enemies.add(newEnemy);
             // Изменяем время "выпада" врага
