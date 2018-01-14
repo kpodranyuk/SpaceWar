@@ -28,12 +28,12 @@ public class StraightTrajectory extends Trajectory{
      * @return Новая позиция
      */
     @Override
-    public Rectangle calculatePosition(Rectangle cuPos, boolean toLeft, float deltaTime) {
+    public Rectangle calculatePosition(Rectangle curPos, boolean toLeft, float deltaTime) {
         if(toLeft)
-            cuPos.x -= this.getSpeed() * deltaTime;
+            curPos.x -= this.getSpeed() * deltaTime;
         else
-            cuPos.x += this.getSpeed() * deltaTime;
-        return cuPos;
+            curPos.x += this.getSpeed() * deltaTime;
+        return curPos;
     }
     
 }

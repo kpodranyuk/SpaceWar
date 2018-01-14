@@ -26,22 +26,22 @@ public class ArcTrajectory extends Trajectory {
 
     /**
      * Вычислить новую позицию согласно траектории
-     * @param cuPos Текущая позиция
+     * @param curPos Текущая позиция
      * @return Новая позиция
      */
     @Override
-    public Rectangle calculatePosition(Rectangle cuPos, boolean toLeft, float deltaTime) {
-        float deltaX = cuPos.x;
+    public Rectangle calculatePosition(Rectangle curPos, boolean toLeft, float deltaTime) {
+        float deltaX = curPos.x;
         if(toLeft)
-            cuPos.x -= this.getSpeed() * deltaTime;
+            curPos.x -= this.getSpeed() * deltaTime;
         else
-            cuPos.x += this.getSpeed() * deltaTime;
-        deltaX=Math.abs(800-cuPos.x);
+            curPos.x += this.getSpeed() * deltaTime;
+        deltaX=Math.abs(800-curPos.x);
         if(this.upDirected)
-            cuPos.y += (float) (deltaX/6) * deltaTime;//this.getSpeed() * deltaTime;
+            curPos.y += (float) (deltaX/6) * deltaTime;//this.getSpeed() * deltaTime;
         else
-            cuPos.y -= (float) (deltaX/6) * deltaTime;//this.getSpeed() * deltaTime;
-        return cuPos;
+            curPos.y -= (float) (deltaX/6) * deltaTime;//this.getSpeed() * deltaTime;
+        return curPos;
     }
     
 }
