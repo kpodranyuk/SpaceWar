@@ -5,13 +5,10 @@
  */
 package com.mygdx.spacewar;
 
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
-import static com.mygdx.spacewar.Bonus.BonusType.HEALTHKIT;
 import static com.mygdx.spacewar.Bonus.BonusType.WEAPONBOOST;
 import com.mygdx.spacewar.ObjectImage.ObjectType;
 import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMMISSILE;
-import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMMISSILEFAST;
 import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMSHIP;
 import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMSHIPFAST;
 import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMSHIPHEALTHY;
@@ -29,16 +26,14 @@ public class GameSystem {
     private Array<Missile> playersMissiles;             /// Снаряды игрока (выпущенные)
     private Array<Missile> enemiesMissiles;             /// Снаряды врагов (выпущенные)
     private Array<Bonus> bonuses;                       /// Игровые бонусы (выпущенные)
+    private EnemyBuilder enmbuilder;                    /// Строитель врагов
+    private BonusBuilder bnsbuilder;                    /// Строитель бонусов
     
-    private Array<ObjectImage> enemiesSprites;          /// Спрайты врагов
-    private Array<ObjectImage> enemiesMissilesSprites;  /// Спрайты снарядов врагов
-    private ObjectImage healthKitImage;                 /// Изображение бонуса здоровья
-    private ObjectImage weaponBoostImage;               /// Изображение бонуса оружия
     public static int curId = -1;                       /// Текущий идентификатор
     private int maxBonusShoots = 6;                     /// Максимальная временная длина бонуса
-    private int shootsSinceBonus;
-    private int currentWeaponBonusId;
-    private int enemiesToEndGame;
+    private int shootsSinceBonus;                       /// Выстрелов с последнего бонуса
+    private int currentWeaponBonusId;                   /// Id текущего активного бонуса
+    private int enemiesToEndGame;                       /// Количество врагов для завершения игры
     
     /**
      * Уровень игры, отвечающий за разнообразие создаваемых врагов
@@ -54,16 +49,14 @@ public class GameSystem {
      */
     public GameSystem(){
         // Инициализируем поля
+        enmbuilder = new EnemyBuilder();
+        bnsbuilder = new BonusBuilder();
         enemies = new Array();
         playersMissiles = new Array();
         enemiesMissiles = new Array();
         currentLevel = Level.EASY;
         
-        enemiesSprites = new Array();
-        enemiesMissilesSprites = new Array();
-        
         bonuses = new Array();
-        healthKitImage = null;
         shootsSinceBonus=0;
         currentWeaponBonusId=0;
         enemiesToEndGame = 250;
@@ -105,158 +98,33 @@ public class GameSystem {
     }
     
     /**
-     * Создать врага
+     * Создать врагов
      * @param enemiesKilled Количество убитых игроком кораблей
-     * @return Отображение врага
+     * @return Отображение врагов
      */
-    public ObjectSprite generateEnemy(int enemiesKilled){
+    public Array<ObjectSprite> generateEnemies(int enemiesKilled){
         // Контроллируем идентификатор
         controlIdCounter();
         // В зависимости от убитых врагов вычисляем текущий уровень игры
         controlLevel(enemiesKilled);
-        // Определяем тип создаваемого игрока, основываясь на сложности игры
-        int enemyIndex = MathUtils.random(1, levelToInt());        
-        EnemyShip enemy = null;
-        // Если первый тип, то создаем легкого врага
-        if(enemyIndex==1){
-            enemy = generateEasyEnemy();
+        int lvl = levelToInt();
+        // Получаем созданных билдеров врагов
+        Array<EnemyShip> createdEnemies = enmbuilder.generateEnemies(lvl);
+        Array<ObjectSprite> createdEnemiesSprites = new Array();
+        for(EnemyShip enm: createdEnemies){
+            createdEnemiesSprites.add(enm.getView());
         }
-        // Иначе если второй тип, то создаем врага с большим хп
-        else if(enemyIndex==2){
-            enemy = generateHealthyEnemy();
-        }
-        // Иначе если третий тип, то создаем врага, стреляющего по дуге
-        else if(enemyIndex==3){
-            enemy = generateFastEnemy();
-        }            
-        // Запоминаем созданного игрока
-        enemies.add(enemy);
-        // Возвращаем отображение игрока
-        return enemy.getView();
-    }
-    
-    /**
-     * Создать легкого врага
-     * @return Враг
-     */
-    private EnemyShip generateEasyEnemy(){
-        // Создаем отображение врага
-        ObjectSprite enemiesView = null;
-        // Запрашиваем имеется ли в памяти изображение врага
-        ObjectImage enemiesImg = getImageOfEnemyObject(ENMSHIP);
-        // Если изображения нет, то создаем и добавляем в массив
-        if (enemiesImg==null){
-            enemiesImg = new ObjectImage("enemies/enemy1.png", ENMSHIP);
-            enemiesSprites.add(enemiesImg);
-        }
-        // Создаем спрайт врага
-        enemiesView = new ObjectSprite(enemiesImg, 29, 38, ++(GameSystem.curId));
-        
-        // Повторяем то же самое с снарядом врага
-        ObjectSprite enemiesMissileView = null;
-        ObjectImage enemiesMissileImg = getImageOfEnemyObject(ENMMISSILE);
-        if (enemiesMissileImg==null){
-            enemiesMissileImg = new ObjectImage("fire/redpng.png", ENMMISSILE);
-            enemiesMissilesSprites.add(enemiesMissileImg);
-        }
-        enemiesMissileView = new ObjectSprite(enemiesMissileImg, 22, 11, ++(GameSystem.curId));
-        
-        // Снаряд легкого врага летит по прямой траектории
-        StraightTrajectory enemiesTrajectory = new StraightTrajectory((float) 250.0, true);
-        // Создаем вражеский снаряд
-        Missile enemiesMissile = new Missile(1, (float) 250.0, enemiesTrajectory, enemiesMissileView); 
-        // Создаем вражеский корабль
-        Array<Weapon> wps = new Array<Weapon>();
-        wps.add(new Weapon(enemiesMissile));
-        
-        EnemyShip enemy = new EnemyShip(1, (float) 200.0, enemiesView, wps);
-        
-        // Возвращаем созданного врага
-        return enemy;
-    }
-    
-    /**
-     * Создать врага с большим здоровьем
-     * @return Враг
-     */
-    private EnemyShip generateHealthyEnemy(){
-        // Создаем отображение врага
-        ObjectSprite enemiesView = null;
-        // Запрашиваем имеется ли в памяти изображение врага
-        ObjectImage enemiesImg = getImageOfEnemyObject(ENMSHIPHEALTHY);
-        // Если изображения нет, то создаем и добавляем в массив
-        if (enemiesImg==null){
-            enemiesImg = new ObjectImage("enemies/enemy2.png", ENMSHIPHEALTHY);
-            enemiesSprites.add(enemiesImg);
-        }
-        // Создаем спрайт врага
-        enemiesView = new ObjectSprite(enemiesImg, 40, 52, ++(GameSystem.curId));
-        // Создаем врага с учетом того, что у данного типа нет снарядов и большое хп
-        Array<Weapon> wps = new Array<Weapon>();
-        wps.add(new Weapon(null));
-        EnemyShip enemy = new EnemyShip(6, (float) 170.0, enemiesView, wps);
-        // Возвращаем созданного врага
-        return enemy;
-    }
-    
-    /**
-     * Создать врага, стреляющего по дуге
-     * @return Враг
-     */
-    private EnemyShip generateFastEnemy(){
-        // Создаем отображение врага
-        ObjectSprite enemiesView = null;
-        // Запрашиваем имеется ли в памяти изображение врага
-        ObjectImage enemiesImg = getImageOfEnemyObject(ENMSHIPFAST);
-        // Если изображения нет, то создаем и добавляем в массив
-        if (enemiesImg==null){
-            enemiesImg = new ObjectImage("enemies/enemy3.png", ENMSHIPFAST);
-            enemiesSprites.add(enemiesImg);
-        }
-        // Создаем спрайт врага
-        enemiesView = new ObjectSprite(enemiesImg, 19, 31, ++(GameSystem.curId));
-        
-        // Повторяем то же самое с снарядом врага
-        ObjectSprite enemiesMissileView = null;
-        ObjectImage enemiesMissileImg = getImageOfEnemyObject(ENMMISSILE);
-        if (enemiesMissileImg==null){
-            enemiesMissileImg = new ObjectImage("fire/redpng.png", ENMMISSILE);
-            enemiesMissilesSprites.add(enemiesMissileImg);
-        }
-        enemiesMissileView = new ObjectSprite(enemiesMissileImg, 22, 11, ++(GameSystem.curId));
-        Array<Weapon> wps = new Array<Weapon>();
-        // Снаряд данного врага стреляет по дуге, поэтому у него дуговая траектория
-        ArcTrajectory enemiesTrajectory = new ArcTrajectory((float) 330.0, true, true);
-        // Создаем снаряд врага
-        Missile enemiesMissile = new Missile(2, (float) 330.0, enemiesTrajectory, enemiesMissileView); 
-        Weapon wp = new Weapon(enemiesMissile);
-        wps.add(wp);
-        
-        // Снаряд данного врага стреляет по дуге, поэтому у него дуговая траектория
-        StraightTrajectory enemiesSTrajectory = new StraightTrajectory((float) 330.0, true);
-        // Создаем снаряд врага
-        enemiesMissile = new Missile(2, (float) 330.0, enemiesSTrajectory, enemiesMissileView); 
-        wp = new Weapon(enemiesMissile);
-        wps.add(wp);
-        
-        // Снаряд данного врага стреляет по дуге, поэтому у него дуговая траектория
-        enemiesTrajectory = new ArcTrajectory((float) 330.0, true, false);
-        // Создаем снаряд врага
-        enemiesMissile = new Missile(2, (float) 330.0, enemiesTrajectory, enemiesMissileView); 
-        wp = new Weapon(enemiesMissile);
-        wps.add(wp);        
-        
-        // Создаем врага
-        EnemyShip enemy = new EnemyShip(2, (float) 300.0, enemiesView, wps);
-        // Возвращаем созданного врага
-        return enemy;
-    }
+        // Добавляем их в массив
+        this.enemies.addAll(createdEnemies);
+        // Возвращаем массив их отображений
+        return createdEnemiesSprites;
+    }    
     
     /**
      * Сделать выстрел
      * @param type Тип объекта, инициирующего выстрел
      * @param objectId Id объекта, инициирующего выстрел
-     * @return Отображение снаряда
+     * @return Отображение снарядов
      */
     public Array<ObjectSprite> makeShoot(ObjectType type, int objectId){
         // Контроллируем идентификатор
@@ -404,33 +272,31 @@ public class GameSystem {
      * @param secondType Тип второго снаряда
      * @param secondId Идентификатор первого снаряда
      */
-    public void missilesCollision(ObjectType firstType, int firstId, ObjectType secondType, int secondId ){
+    public void missilesCollision(ObjectType firstType, int firstId, ObjectType secondType, int secondId){
+        ObjectType playerType = USRMISSILE;
+        ObjectType enmType = ENMMISSILE;
+        int playersMId = -1;
+        int enemiesMId = -1;
         // Если первый снаряд пользовательский, а второй вражеский
         if (firstType == USRMISSILE && secondType == ENMMISSILE){
-            // Удаляем первый снаряд из списка пользовательских снарядов
-            this.playersMissiles.removeValue(this.getActiveMissile(firstType, firstId), true);
-            System.out.println("Freed user missile with id " + firstId);
-            // Уменьшаем память массива пользовательских снарядов
-            this.playersMissiles.shrink();
-            // Удаляем второй снаряд из списка вражеских снарядов
-            this.enemiesMissiles.removeValue(this.getActiveMissile(secondType, secondId), true);
-            System.out.println("Freed enemy missile with id " + secondId);
-            // Уменьшаем память массива вражеских снарядов
-            this.enemiesMissiles.shrink();
+            playersMId = firstId;
+            enemiesMId = secondId;            
         }
         // Иначе если первый снаряд вражеский, а второй пользовательский
         else if (firstType == ENMMISSILE && secondType == USRMISSILE){
-            // Удаляем второй снаряд из списка пользовательских снарядов
-            this.playersMissiles.removeValue(this.getActiveMissile(secondType, secondId), true);
-            System.out.println("Freed user missile with id " + secondId);
-            // Уменьшаем память массива пользовательских снарядов
-            this.playersMissiles.shrink();
-            // Удаляем первый снаряд из списка вражеских снарядов
-            this.enemiesMissiles.removeValue(this.getActiveMissile(firstType, firstId), true);
-            System.out.println("Freed enemy missile with id " + firstId);
-            // Уменьшаем память массива вражеских снарядов
-            this.enemiesMissiles.shrink();
+            playersMId = secondId;
+            enemiesMId = firstId;
         }
+        // Удаляем первый снаряд из списка пользовательских снарядов
+        this.playersMissiles.removeValue(this.getActiveMissile(playerType, playersMId), true);
+        System.out.println("Freed user missile with id " + firstId);
+        // Уменьшаем память массива пользовательских снарядов
+        this.playersMissiles.shrink();
+        // Удаляем второй снаряд из списка вражеских снарядов
+        this.enemiesMissiles.removeValue(this.getActiveMissile(enmType, enemiesMId), true);
+        System.out.println("Freed enemy missile with id " + secondId);
+        // Уменьшаем память массива вражеских снарядов
+        this.enemiesMissiles.shrink();
     }
     
     /**
@@ -514,31 +380,6 @@ public class GameSystem {
     }
     
     /**
-     * Получить изображение вражеского объекта
-     * @param type Тип вражеского объекта
-     * @return Изображение вражеского объекта
-     */
-    private ObjectImage getImageOfEnemyObject(ObjectType type){
-        // Если тип объекта - вражеский снаряд
-        if (type==ENMMISSILE || type==ENMMISSILEFAST){
-            // Ищем в массиве вражеских снарядов необходимый и возвращаем его
-            for(ObjectImage sprite:  enemiesMissilesSprites){
-                if (sprite.getObjType()==type)
-                    return sprite;
-            }
-            // Если снаряд не нашелся, возвращаем null
-            return null;
-        }
-        // Иначе ищем объект среди вражеских кораблей и возвращаем его
-        for(ObjectImage sprite:  enemiesSprites){
-            if (sprite.getObjType()==type)
-                return sprite;
-        }
-        // Если корабль не найден, возвращаем null
-        return null;
-    }
-    
-    /**
      * Создать бонус здоровья
      * @return null, если бонус не создан, иначе - спрайт бонуса
      */
@@ -546,13 +387,7 @@ public class GameSystem {
         // Будем считать, что бонус здоровья выдается только при уровне игры не легче среднего
         // Также игрок должен нуждаться в бонусе здоровья
         if(levelToInt()>1 && this.player.getCurrentHealth()<this.player.getMaxHealth()){
-            // Создать бонус здоровья
-            if (healthKitImage == null){
-                healthKitImage = new ObjectImage("firstaid_kit.png", GAMEBONUS);
-            }
-            ObjectSprite kitSprite = new ObjectSprite(healthKitImage, 15, 15, ++(GameSystem.curId));
-            StraightTrajectory traj = new StraightTrajectory((float) 300.0, true);
-            HealthKit kit = new HealthKit(HEALTHKIT, kitSprite, traj);
+            Bonus kit = bnsbuilder.generateHealthKit();
             bonuses.add(kit);
             return kit.getView();
         }
@@ -562,15 +397,9 @@ public class GameSystem {
     public ObjectSprite createWeaponBouns() {
         // Будем считать, что бонус оружия выдается только при сложном уровне игры
         if(levelToInt()>2){
-            // Создать бонус здоровья
-            if (weaponBoostImage == null){
-                weaponBoostImage = new ObjectImage("super_missile.png", GAMEBONUS);
-            }
-            ObjectSprite wbSprite = new ObjectSprite(weaponBoostImage, 15, 15, ++(GameSystem.curId));
-            StraightTrajectory traj = new StraightTrajectory((float) 300.0, true);
-            WeaponBoost wb = new WeaponBoost(WEAPONBOOST, wbSprite, traj);
-            bonuses.add(wb);
-            return wb.getView();
+            Bonus boost = bnsbuilder.generateWeaponBoost();
+            bonuses.add(boost);
+            return boost.getView();
         }
         return null;
     }
