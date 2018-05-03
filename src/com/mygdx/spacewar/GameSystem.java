@@ -6,6 +6,7 @@
 package com.mygdx.spacewar;
 
 import com.badlogic.gdx.utils.Array;
+import com.mygdx.spacewar.moduleloader.ModuleEngine;
 import static com.mygdx.spacewar.Bonus.BonusType.WEAPONBOOST;
 import com.mygdx.spacewar.ObjectImage.ObjectType;
 import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMMISSILE;
@@ -21,6 +22,7 @@ import static com.mygdx.spacewar.ObjectImage.ObjectType.USRSHIP;
  * @author Katie
  */
 public class GameSystem {
+    private ModuleEngine loader;
     private PlayerShip player;                          /// Игрок
     private Array<EnemyShip> enemies;                   /// Враги
     private Array<Missile> playersMissiles;             /// Снаряды игрока (выпущенные)
@@ -63,6 +65,9 @@ public class GameSystem {
         
         // Создаем игрока
         createPlayer();
+        
+        loader = new ModuleEngine();
+        loader.loadBot("..\\build\\classes\\main\\com\\mygdx\\spacewar\\bot", null);
     }
     
     /**
