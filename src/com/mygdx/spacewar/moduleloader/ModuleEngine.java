@@ -6,7 +6,7 @@
 package com.mygdx.spacewar.moduleloader;
 
 import com.mygdx.spacewar.bot.Bot;
-import com.mygdx.spacewar.api.GameSystemAPI;
+import com.mygdx.spacewar.api.SpaceWarAPI;
 import java.io.File;
 
 /**
@@ -17,7 +17,7 @@ public class ModuleEngine {
     
     private static Bot bot = null;
     
-    public void loadBot(String modulePath, GameSystemAPI api) {
+    public void loadBot(String modulePath, SpaceWarAPI api) {
         
         ModuleLoader loader = new ModuleLoader(modulePath, ClassLoader.getSystemClassLoader());
         
@@ -43,7 +43,7 @@ public class ModuleEngine {
 
                         Class clazz = loader.loadClass("com.mygdx.spacewar.bot." + moduleName);
                         bot = (Bot) clazz.newInstance();
-                        // bot.run(api);
+                        bot.run(api);
                         System.out.println("Bot loaded");
                     }
 

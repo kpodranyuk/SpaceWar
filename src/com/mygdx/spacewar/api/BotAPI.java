@@ -5,10 +5,25 @@
  */
 package com.mygdx.spacewar.api;
 
+import com.badlogic.gdx.utils.Array;
+import com.mygdx.spacewar.ObjectSprite;
+
 /**
- *
+ * Интерфейс бота
  * @author Katie
  */
-public class BotAPI {
+public interface BotAPI {
+    
+    /**
+     * Запустить бота
+     * @param api апи, предоставляемое системой игры
+     */
+    public void run(SpaceWarAPI api);
+    
+    /**
+     * Обновить поведение управлением бота
+     * @param delta прошедшее время
+     */
+    public void update(float delta, Array<ObjectSprite> objs);
     
 }

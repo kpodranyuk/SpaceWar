@@ -18,13 +18,36 @@ import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMSHIPHEALTHY;
 import static com.mygdx.spacewar.SpaceWar.GAMESTATE.GAMEOVER;
 import static com.mygdx.spacewar.SpaceWar.GAMESTATE.PAUSED;
 import static com.mygdx.spacewar.SpaceWar.GAMESTATE.PLAY;
+import com.mygdx.spacewar.api.BotAPI;
+import com.mygdx.spacewar.api.SpaceWarAPI;
+import com.mygdx.spacewar.moduleloader.ModuleEngine;
 import java.util.Iterator;
 
 /**
  * Панель игры
  * @author Katie
  */
-public class SpaceWar extends ApplicationAdapter {
+public class SpaceWar extends ApplicationAdapter implements SpaceWarAPI {
+
+    @Override
+    public void setBot(BotAPI bot) {
+        this.bot = bot;
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    @Override
+    public Rectangle getPlayerRectangle() {
+        return this.playersView.rect;
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    private ModuleEngine loader;
+    private BotAPI bot = null;
+
+    @Override
+    public float getPlayerSpeed() {
+        return system.getPlayer().getSpeed(); //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
     public enum GAMESTATE { PAUSED, GAMEOVER, PLAY };
     private GAMESTATE state;
@@ -61,7 +84,7 @@ public class SpaceWar extends ApplicationAdapter {
     
     private static final long spacePushedDeltaTime = 150;
     private long spacePushedTime;
-
+    
     private int enemiesDestroyed;          /// Количество сбитых врагов
     private BitmapFont gameFont;            /// Шрифт
     private BitmapFont infoFont;            /// Шрифт
@@ -83,6 +106,9 @@ public class SpaceWar extends ApplicationAdapter {
         infoFont.setColor(Color.WHITE);
         infoFont.getData().setScale(2, 2);
 
+        loader = new ModuleEngine();
+        loader.loadBot("..\\build\\classes\\main\\com\\mygdx\\spacewar\\bot", this);
+        
         startRoutine();
     }
     
@@ -165,6 +191,13 @@ public class SpaceWar extends ApplicationAdapter {
                 controlBonusesPosition();    
                 if (system.isGameFinished())
                     this.state = GAMEOVER;
+                else{
+                    Array<ObjectSprite> objs = new Array();
+                    objs.addAll(this.enemies);
+                    objs.addAll(this.enemysMissiles);
+                    objs.addAll(this.bonuses);
+                    bot.update(Gdx.graphics.getDeltaTime(), objs);
+                }
                 break;
             case PAUSED:
                 // Сообщаем SpriteBatch использовать систему координат камеры. (матрицу проекции)
@@ -326,30 +359,35 @@ public class SpaceWar extends ApplicationAdapter {
         }        
     }
     
-    private void shoot() {
-        Array<ObjectSprite> userMissiles = new Array<ObjectSprite>();
-        userMissiles = system.makeShoot(playersView.getObjType(), playersView.getId());
-        float offsetHeight; 
-        float startHeight;
-        int counter=0;
-        if (userMissiles.size == 1){            
-            offsetHeight = 0;
-            startHeight = playersView.rect.y;
+    @Override
+    public void shoot() {
+        if (TimeUtils.nanosToMillis(TimeUtils.nanoTime()) - lastShootTime > shootDeltaTime){
+            Array<ObjectSprite> userMissiles = new Array<ObjectSprite>();
+            userMissiles = system.makeShoot(playersView.getObjType(), playersView.getId());
+            float offsetHeight; 
+            float startHeight;
+            int counter=0;
+            if (userMissiles.size == 1){            
+                offsetHeight = 0;
+                startHeight = playersView.rect.y;
+            }
+            else{
+                offsetHeight = playersView.rect.height/(userMissiles.size-1);
+                startHeight = playersView.rect.y + playersView.rect.height/2;
+            }
+            for (ObjectSprite missile: userMissiles){
+                missile.rect.x = playersView.rect.x + playersView.rect.width/2;
+                missile.rect.y = startHeight - offsetHeight*counter + missile.rect.height;
+                this.playersMissiles.add(missile);
+                counter++;
+            }
+            lastShootTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
         }
-        else{
-            offsetHeight = playersView.rect.height/(userMissiles.size-1);
-            startHeight = playersView.rect.y + playersView.rect.height/2;
-        }
-        for (ObjectSprite missile: userMissiles){
-            missile.rect.x = playersView.rect.x + playersView.rect.width/2;
-            missile.rect.y = startHeight - offsetHeight*counter + missile.rect.height;
-            this.playersMissiles.add(missile);
-            counter++;
-        }
-        lastShootTime = TimeUtils.nanosToMillis(TimeUtils.nanoTime());
+        
     }
     
-    private void controlPlayerPosition(){
+    @Override
+    public void controlPlayerPosition(){
         // Если при сдвиге корабль вылетел за пределы поля - возвращаем его в систему координат
         if(playersView.rect.y < 0)
             playersView.rect.y = 0;
