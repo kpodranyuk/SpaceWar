@@ -16,12 +16,15 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
 import static com.mygdx.spacewar.ObjectImage.ObjectType.ENMSHIPHEALTHY;
 import static com.mygdx.spacewar.SpaceWar.GAMESTATE.GAMEOVER;
+import static com.mygdx.spacewar.SpaceWar.GAMESTATE.GAMESTART;
 import static com.mygdx.spacewar.SpaceWar.GAMESTATE.PAUSED;
 import static com.mygdx.spacewar.SpaceWar.GAMESTATE.PLAY;
 import com.mygdx.spacewar.api.BotAPI;
 import com.mygdx.spacewar.api.SpaceWarAPI;
 import com.mygdx.spacewar.moduleloader.ModuleEngine;
+import java.io.File;
 import java.util.Iterator;
+import javax.swing.JFileChooser;
 
 /**
  * Панель игры
@@ -49,7 +52,7 @@ public class SpaceWar extends ApplicationAdapter implements SpaceWarAPI {
         return system.getPlayer().getSpeed(); //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
-    public enum GAMESTATE { PAUSED, GAMEOVER, PLAY };
+    public enum GAMESTATE { PAUSED, GAMEOVER, PLAY, GAMESTART };
     private GAMESTATE state;
     private GAMESTATE lastState;
     private GameSystem system;
@@ -105,9 +108,6 @@ public class SpaceWar extends ApplicationAdapter implements SpaceWarAPI {
         infoFont = new BitmapFont();
         infoFont.setColor(Color.WHITE);
         infoFont.getData().setScale(2, 2);
-
-        loader = new ModuleEngine();
-        loader.loadBot("..\\build\\classes\\main\\com\\mygdx\\spacewar\\bot", this);
         
         startRoutine();
     }
@@ -129,6 +129,48 @@ public class SpaceWar extends ApplicationAdapter implements SpaceWarAPI {
         // Обновляем камеру
         camera.update();
         if (null != state) switch (state) {
+            case GAMESTART:
+                // Сообщаем SpriteBatch использовать систему координат камеры. (матрицу проекции)
+                // SpriteBatch нарисует все, что будет находиться в заданных координатах.
+                batch.setProjectionMatrix(camera.combined);
+                // Начинаем сессию
+                batch.begin();
+                // Отрисовываем фон
+                batch.draw(back, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+                // Отрисовываем сообщение о том, что игра приостановлена
+                infoFont.draw(batch, "SELECT PLAYER", 300, (float) 150);
+                infoFont.draw(batch, "B FOR BOT ", 300, (float) 100);
+                infoFont.draw(batch, "H FOR HUMAN", 300, (float) 50);
+                batch.end();
+                // Отрисовываем корабль героя
+                if(Gdx.input.isKeyPressed(Keys.H)){
+                    this.bot = null;
+                    this.state = PLAY;
+                    // Создаем первый корабль
+                    spawnEnemy();
+                }
+                else if (Gdx.input.isKeyPressed(Keys.B)){
+                    // грузим бота 
+                    JFileChooser fileopen = new JFileChooser(
+                        "..\\build\\classes\\main\\com\\mygdx\\spacewar\\bot"
+                    ); 
+                    int ret = fileopen.showDialog(null, "Открыть файл"); 
+                    String moduleName = null; 
+                    String modulePath = null; 
+                    if (ret == JFileChooser.APPROVE_OPTION) { 
+                        File file = fileopen.getSelectedFile(); 
+                        System.out.println(file.getName()); 
+                        moduleName = file.getName().split(".class")[0]; 
+                        modulePath = (String)file.getPath(); 
+                        loader = new ModuleEngine();
+                        loader.loadBot(modulePath, moduleName, this);
+                        this.state = PLAY;
+                        // Создаем первый корабль
+                        spawnEnemy();
+                    } 
+                }
+                this.lastState = PLAY;
+                break;
             case PLAY:
                 // Сообщаем SpriteBatch использовать систему координат камеры. (матрицу проекции)
                 // SpriteBatch нарисует все, что будет находиться в заданных координатах.
@@ -196,7 +238,8 @@ public class SpaceWar extends ApplicationAdapter implements SpaceWarAPI {
                     objs.addAll(this.enemies);
                     objs.addAll(this.enemysMissiles);
                     objs.addAll(this.bonuses);
-                    bot.update(Gdx.graphics.getDeltaTime(), objs);
+                    if(bot != null)
+                        bot.update(Gdx.graphics.getDeltaTime(), objs);
                 }
                 break;
             case PAUSED:
@@ -274,14 +317,11 @@ public class SpaceWar extends ApplicationAdapter implements SpaceWarAPI {
         playersView.rect.x = 20;    
         
         respawnTime = 2200;
-        
-        // Создаем первый корабль
-        spawnEnemy();
 
         // Выделяем память под batch
         batch = new SpriteBatch();
-        state = PLAY;
-        lastState = PLAY;
+        state = GAMESTART;
+        lastState = GAMESTART;
     }
     
     private void showHealthBonus(){
