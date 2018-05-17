@@ -40,27 +40,25 @@ public class Bot implements BotAPI{
                     object = o;
                 }
             }
-            
+            float deltaY = this.correlatePlayersPosition(player, object.rect, speed, delta);
             // доходим до уровня объекта
-            this.correlatePlayersPosition(player, object.rect, speed, delta);
+            player.y += deltaY;
             api.shoot();      
             
         }
-        
-        //api.shoot();
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
-    private void correlatePlayersPosition(Rectangle player, Rectangle object, float speed, float dt){
-        float playerCenter = player.y + player.height/2;
-        float objectCenter = object.y + object.height/2;
+    public float correlatePlayersPosition(Rectangle player, Rectangle object, float speed, float dt){
+        float playerCenter = player.y + player.height/2; 
+        float objectCenter = object.y + object.height/2; 
         if (Math.abs(objectCenter - playerCenter) < 2)
-            return ;
+            return 0;
         if (playerCenter > objectCenter) {
-            player.y -= speed * dt;
+           return -1*speed * dt;
         }
         else if (playerCenter < objectCenter) {
-            player.y += speed * dt;
+            return speed * dt;
         }
+        return 0;
     }
 }
